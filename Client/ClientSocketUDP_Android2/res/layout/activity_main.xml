@@ -36,8 +36,8 @@
         android:layout_alignLeft="@+id/response"
         android:layout_below="@+id/textView2"
         android:ems="10"
-        android:hint="dstAddress" >
-
+        android:hint="dstAddress"
+		android:text="192.168.0.101" >
         <requestFocus />
     </EditText>
 
@@ -48,7 +48,8 @@
         android:layout_alignLeft="@+id/address"
         android:layout_below="@+id/address"
         android:ems="10"
-        android:hint="dstPort" />
+        android:hint="dstPort"
+		android:text="8080" />
 
     <Button
         android:id="@+id/connect"

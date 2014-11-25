@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -45,35 +46,34 @@ public class MainActivity extends Activity {
         //textPerformance.setText("Hello");
 
         buttonConnect.setOnClickListener(buttonConnectOnClickListener);
-        buttonClear.setOnClickListener(new OnClickListener(){
-
+        buttonClear.setOnClickListener(new OnClickListener()
+        {
             @Override
             public void onClick(View v) {
                 textResponse.setText("");
             }});
-        buttonOK.setOnClickListener(new OnClickListener(){
+        
+        buttonOK.setOnClickListener( 
+        	new OnClickListener() 
+	        {
+	            @Override
+	            public void onClick(View v) 
+	            {	                
+	                //textPerformance.setText( String.valueOf(message_distant) );
+	            }
+	        }
+        );
+     }
 
-            @Override
-            public void onClick(View v) {
-                textPerformance.setText(message_distant);
-            }});
-     	}
-
-    OnClickListener buttonConnectOnClickListener =
-            new OnClickListener(){
-
-                @Override
-                public void onClick(View arg0) {
-     /*
-      * You have to verify editTextAddress and
-      * editTextPort are input as correct format.
-      */
-
-                    MyClientTask myClientTask = new MyClientTask(
-                            editTextAddress.getText().toString(),
-                            Integer.parseInt(editTextPort.getText().toString()));
-                    myClientTask.execute();
-                }};
+    OnClickListener buttonConnectOnClickListener = new OnClickListener()
+    {
+        @Override
+        public void onClick(View arg0) 
+        {
+        	MyClientTask myClientTask = new MyClientTask();
+            myClientTask.execute();
+        }
+	};
 
     public class MyClientTask extends AsyncTask<Void, Void, Void> {
 
@@ -81,43 +81,49 @@ public class MainActivity extends Activity {
         int dstPort;
         String response;
 
-        MyClientTask(String addr, int port){
-            dstAddress = addr;
-            dstPort = port;
-        }
-
         @Override
-        protected Void doInBackground(Void... arg0) {
-        	
- 
-        	try {
-                socket = new Socket(dstAddress, dstPort);
-                
-                in = new BufferedReader (new InputStreamReader (socket.getInputStream()));
-		        message_distant = in.readLine();
-		        
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(1024);        
-         
-               // int bytesRead;
-               // while ((bytesRead = inputStream.read(buffer)) != -1){
-                 //   byteArrayOutputStream.write(buffer, 0, bytesRead); 
-                  
-                //}
-    
-                in.close();
-                socket.close();
-                response = byteArrayOutputStream.toString("UTF-8");
-            }           
-           
-            catch (UnknownHostException e) {
+        protected Void doInBackground(Void... arg0) 
+        {
+        	try 
+        	{
+        		socket = new Socket(editTextAddress.getText().toString(), Integer.parseInt(editTextPort.getText().toString()) );
+        		in = new BufferedReader (new InputStreamReader (socket.getInputStream()));
+            } catch (UnknownHostException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            
-            return null;
+    		
+    		while(true)
+    		{
+		        try {
+					int nblus = in.read(message_distant, 0, 10);
+	                textPerformance.setText( String.valueOf(message_distant) );
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}		            
+		        
+               // int bytesRead;
+               // while ((bytesRead = inputStream.read(buffer)) != -1){
+                 //   byteArrayOutputStream.write(buffer, 0, bytesRead); 
+                //}   
+                
+                // TODO gérer le close
+                //socket.close();                
+		        //in.close();
+
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(1024);               
+                
+                try {
+					response = byteArrayOutputStream.toString("UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		}
         }
         
 
