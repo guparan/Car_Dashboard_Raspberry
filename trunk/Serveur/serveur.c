@@ -120,13 +120,18 @@ void *thread_runtime (void * arg)
                     close(clients[i]);
                     clients[i]=-1;
                 }
+				else
+				{
+					printf("Erreur inconnue \n");
+					exit(errno);
+				}
             }
-	    else
-	    {
-            write(clients[i], "\n", 1);
-            printf("Send messages finished:%s (%d octets)!\n", buffer, ecrits);
-            }
-        }
+			else
+			{
+				write(clients[i], "\n", 1);
+				printf("Send messages finished:%s (%d octets)!\n", buffer, ecrits);
+			}
+		}
 
         //printf("%03u %02x %c\n",c&0xff,c&0xff,c);
     }
