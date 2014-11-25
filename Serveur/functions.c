@@ -1,4 +1,4 @@
-#include "echange_tcp.h"
+#include "functions.h"
 
 ssize_t ecrireLigne(int sock, const void *buffer, size_t nb){
     ssize_t aEcrire, ecrits;
