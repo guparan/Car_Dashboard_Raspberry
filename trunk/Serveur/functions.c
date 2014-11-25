@@ -92,9 +92,6 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
 
 int saveTrame(FILE* fptr, char *buffer, int i)
 {
-
-
-
         //for(i=0 ; i<TAILLE_TRAME ; i++)
         //{
         fprintf(fptr, "%d,%s\n", i, buffer);
