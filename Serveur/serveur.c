@@ -18,7 +18,7 @@
 #include <signal.h>
 
 // Fonctions
-#include "echange_tcp.h"
+#include "functions.h"
 
 // Constantes
 #define PORT 8080
