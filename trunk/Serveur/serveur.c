@@ -128,7 +128,6 @@ void *thread_runtime (void * arg)
             }
 			else
 			{
-				write(clients[i], "\n", 1);
 				printf("Send messages finished:%s (%d octets)!\n", buffer, ecrits);
 			}
 		}
