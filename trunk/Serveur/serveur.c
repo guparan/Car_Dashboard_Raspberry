@@ -53,6 +53,7 @@ void *thread_runtime (void * arg)
     int trame;
     int save;
     int i;
+    int j=0;
     int ecrits=0;
     struct termios termios_p;
 
@@ -92,7 +93,8 @@ void *thread_runtime (void * arg)
         printf("%s\n", buffer);
         printf("%c\n", buffer[0]);
 
-        save = saveTrame(fptr, buffer, TAILLE_TRAME);
+        save = saveTrame(fptr, buffer, j, TAILLE_TRAME);
+        j++;
         if(save == 1) printf("la sauvegarde a bien ete faite \n");
 
      // system("gnuplot gnuplot_config");
