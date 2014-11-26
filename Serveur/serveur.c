@@ -97,7 +97,7 @@ void *thread_runtime (void * arg)
         j++;
         if(save == 1) printf("la sauvegarde a bien ete faite \n");
 
-     // system("gnuplot gnuplot_config");
+        //system("gnuplot gnuplot_config");
 
         for(i=0 ; i<CLIENT_MAX ; i++)
         {
@@ -164,22 +164,27 @@ void *thread_runtime (void * arg)
 void *thread_runtimeCan (void * arg)
 {
         printf("je suis dans le thread tramecan\n");
-/*
+
         int s,i;
         int nbytes;
+        int save;
         struct sockaddr_can addr;
         struct can_frame frame;
         struct ifreq ifr;
-	char c;
-	char buffer[100];
-
+        char c;
+        char buffer[100];
         char *ifname = "can0";
 
-        if((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+        FILE* fptr = fopen("dataCAN.csv", "w");
+
+        if((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
+        {
                 perror("Error while opening socket");
                 return -1;
         }
+
         printf("socket canbus cree avec sucees\n");
+
         strcpy(ifr.ifr_name, ifname);
         ioctl(s, SIOCGIFINDEX, &ifr);
 
@@ -188,58 +193,58 @@ void *thread_runtimeCan (void * arg)
 
         printf("%s at index %d\n", ifname, ifr.ifr_ifindex);
 
-        if(bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        if(bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        {
                 perror("Error in socket bind");
                 return -2;
         }
         printf("socket attache avec succes\n");
 
-        frame.can_id  = 0x123;
-        frame.can_dlc = 2;
-        frame.data[0] = 0xB0;
-        frame.data[1] = 0x0B;
+        //frame.can_id  = 0x123;
+        //frame.can_dlc = 2;
+        //frame.data[0] = 0xB0;
+        //frame.data[1] = 0x0B;
 
-    nbytes = write(s, &frame, sizeof(struct can_frame));
-	printf("Wrote %d bytes\n", nbytes);
+        //nbytes = write(s, &frame, sizeof(struct can_frame));
+        //printf("Wrote %d bytes\n", nbytes);
 
-        frame.can_id  = 0x456;
-        frame.can_dlc = 2;
-        frame.data[0] = 0x13;
-        frame.data[1] = 0x37;
+        //frame.can_id  = 0x456;
+        //frame.can_dlc = 2;
+        //frame.data[0] = 0x13;
+        //frame.data[1] = 0x37;
 
-	nbytes = write(s, &frame, sizeof(struct can_frame));
-    printf("Wrote %d bytes\n", nbytes);
+        //nbytes = write(s, &frame, sizeof(struct can_frame));
+        //printf("Wrote %d bytes\n", nbytes);
 
-    while(keepRunning)
-    {
-      //   Read a message back from the CAN bus
-
-
-        nbytes = read( s, &frame, sizeof(struct can_frame));
-        printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);
-        for(i=0; i<frame.can_dlc; i++)
-        printf("%x ",frame.data[i]);
-        printf("\n");
-
-        if(frame.can_id == 0x11)
+        while(keepRunning)
         {
-            printf("je detecte bien le message de l identifiant\n");
+          //Read a message back from the CAN bus
+
+
+            nbytes = read( s, &frame, sizeof(struct can_frame));
             printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);
             for(i=0; i<frame.can_dlc; i++)
-	    {
             printf("%x ",frame.data[i]);
-	    c=frame.data[i];
-	    buffer[i]=c;
-	    }
+            printf("\n");
 
-	    printf("%x\n", frame.data);
+            if(frame.can_id == 0x11)
+            {
+                printf("je detecte bien le message de l identifiant 11\n");
+                printf("Identifiant: %x [%d]\n", frame.can_id, frame.can_dlc);
+                for(i=0; i<frame.can_dlc; i++)
+                {
+                    //printf("%d\n",frame.data[i]);
+                    c=frame.data[i];
+                    printf("%d\n");
+                    //buffer[i]=c;
+                    //printf("%d\n", buffer[i]);
+                }
 
+                //printf("%s\n", buffer);
+            }
         }
 
-    }
-*/
         return 0;
-
 }
 
 
