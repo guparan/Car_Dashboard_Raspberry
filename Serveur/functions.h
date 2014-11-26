@@ -27,7 +27,7 @@ ssize_t lireLigne(int sock, void *buffer, size_t nbMax);
 
 ssize_t lectureTrame(int liaisonSerie, char * buffer,  size_t nbMax);
 
-int saveTrame(FILE* fptr, char *buffer, int i);
+int saveTrame(FILE* fptr, char *buffer, int j, int sizeofbuffer);
 
 
 #endif

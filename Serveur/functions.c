@@ -75,7 +75,7 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
             i++;
         }
 
-        if( data == ' ' )
+        if( data == '+' )
         {
             printf("caractere de debut de trame detecte\n");
             if(lecture == 0)
@@ -90,12 +90,20 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
     return totalLus;
 }
 
-int saveTrame(FILE* fptr, char *buffer, int i)
+int saveTrame(FILE* fptr, char *buffer, int j, int sizeofbuffer)
 {
-        //for(i=0 ; i<TAILLE_TRAME ; i++)
-        //{
-        fprintf(fptr, "%d,%s\n", i, buffer);
-        //}
+    int i;
+    for(i=0 ; i<sizeofbuffer ; i++)
+    {
+        if(buffer[i] == ' ')
+        {
+            printf("je detecte bien lespace\n");
+            buffer[i]=';';
+        }
+    }
+    printf("%s\n", buffer);
+    fprintf(fptr, "%d;%s\n", j, buffer);
+
 
  return 1;
 }
