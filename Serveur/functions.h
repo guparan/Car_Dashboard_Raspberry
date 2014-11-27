@@ -29,5 +29,7 @@ ssize_t lectureTrame(int liaisonSerie, char * buffer,  size_t nbMax);
 
 int saveTrame(FILE* fptr, char *buffer, int j, int sizeofbuffer);
 
+int saveTrameCan(FILE* fptr, char *bufferCan, int j, int sizeofbuffercan);
+
 
 #endif
