@@ -107,3 +107,11 @@ int saveTrame(FILE* fptr, char *buffer, int j, int sizeofbuffer)
 
  return 1;
 }
+
+int saveTrameCan(FILE* fptr, char *bufferCan, int j, int sizeofbuffercan)
+{
+        printf("Je suis dans la fonction save tramecan\n");
+        printf("%d, %d, %d, %d, %d, %d, %d, %d\n", *bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7));
+        fprintf(fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", j, *bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7));
+
+}

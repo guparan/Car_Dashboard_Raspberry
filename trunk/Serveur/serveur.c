@@ -25,6 +25,7 @@
 #define LG_MESSAGE 256
 #define CLIENT_MAX 5
 #define TAILLE_TRAME 10
+#define TAILLE_TRAME_CAN 20
 
 //CanBus
 #include <net/if.h>
@@ -168,11 +169,12 @@ void *thread_runtimeCan (void * arg)
         int s,i;
         int nbytes;
         int save;
+        int j=0;
         struct sockaddr_can addr;
         struct can_frame frame;
         struct ifreq ifr;
         char c;
-        char buffer[100];
+        char bufferCan[TAILLE_TRAME_CAN];
         char *ifname = "can0";
 
         FILE* fptr = fopen("dataCAN.csv", "w");
@@ -235,12 +237,12 @@ void *thread_runtimeCan (void * arg)
                 {
                     //printf("%d\n",frame.data[i]);
                     c=frame.data[i];
-                    printf("%d\n");
-                    //buffer[i]=c;
-                    //printf("%d\n", buffer[i]);
+                    printf("%d\n", c);
+                    bufferCan[i]=c;
                 }
 
-                //printf("%s\n", buffer);
+                save = saveTrameCan(fptr, bufferCan, j, TAILLE_TRAME_CAN);
+                j++;
             }
         }
 
