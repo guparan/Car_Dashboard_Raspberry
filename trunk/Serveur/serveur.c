@@ -1,6 +1,5 @@
 // URL : http://collabedit.com/7fpwk
 
-
 // Bibliotheques
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +25,8 @@
 #define CLIENT_MAX 5
 #define TAILLE_TRAME 10
 #define TAILLE_TRAME_CAN 20
+#define TAILLE_INFO_TRAME 3
+#define TAILLE_INFO_TRAME_CAN 1
 
 //CanBus
 #include <net/if.h>
@@ -33,7 +34,9 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
+
 static int keepRunning = 1;
+
 
 void intHandler(int sig)
 {
@@ -49,6 +52,7 @@ void *thread_runtime (void * arg)
 
     char buffer[TAILLE_TRAME];
     //char* bufferTest="Testbuffer";
+	char* tailleTrameSerieLue_buffer;
 
     int liaisonSerie;
     int trame;
@@ -56,43 +60,64 @@ void *thread_runtime (void * arg)
     int i;
     int j=0;
     int ecrits=0;
+	int digits = 0;
+	
     struct termios termios_p;
+	
+	int tailleTrameCanLue = 0;
+	char tailleTrameCanLue_encode[TAILLE_INFO_TRAME_CAN];
+	
+	int tailleTrameSerieLue = 0;
+	char tailleTrameSerieLue_encode[TAILLE_INFO_TRAME];
 
-    FILE* fptr = fopen("data.csv", "w");
+	// TODO : faire une fonction initSerie()
+	// INIT SERIE
+		FILE* fptr = fopen("data.csv", "w");
 
-    printf("thread cree\n");
+		printf("thread cree\n");
 
-    if ( (liaisonSerie = open("/dev/ttyAMA0",O_RDONLY)) == -1 )
-    {
-        printf("error on open");
-        exit(-1);
-    }
+		if ( (liaisonSerie = open("/dev/ttyAMA0",O_RDONLY)) == -1 )
+		{
+			printf("error on open");
+			exit(-1);
+		}
 
-    /* Lecture des parametres courants */
-    tcgetattr(liaisonSerie,&termios_p);
-    /* On ignore les BREAK et les caracteres avec erreurs de parite */
-    termios_p.c_iflag = IGNBRK | IGNPAR;
-    /* Pas de mode de sortie particulier */
-    termios_p.c_oflag = 0;
-    /* Liaison a 9600 bps avec 7 bits de donnees et une parite paire */
-    termios_p.c_cflag = B9600 | CS7 | PARENB;
-    /* Mode non-canonique avec echo */
-    termios_p.c_lflag = ECHO;
-    /* Caracteres immediatement disponibles */
-    termios_p.c_cc[VMIN] = 1;
-    termios_p.c_cc[VTIME] = 0;
-    /* Sauvegarde des nouveaux parametres */
-    tcsetattr(liaisonSerie,TCSANOW,&termios_p);
-
-
+		/* Lecture des parametres courants */
+		tcgetattr(liaisonSerie,&termios_p);
+		/* On ignore les BREAK et les caracteres avec erreurs de parite */
+		termios_p.c_iflag = IGNBRK | IGNPAR;
+		/* Pas de mode de sortie particulier */
+		termios_p.c_oflag = 0;
+		/* Liaison a 9600 bps avec 7 bits de donnees et une parite paire */
+		termios_p.c_cflag = B9600 | CS7 | PARENB;
+		/* Mode non-canonique avec echo */
+		termios_p.c_lflag = ECHO;
+		/* Caracteres immediatement disponibles */
+		termios_p.c_cc[VMIN] = 1;
+		termios_p.c_cc[VTIME] = 0;
+		/* Sauvegarde des nouveaux parametres */
+		tcsetattr(liaisonSerie,TCSANOW,&termios_p);
+	// FIN INIT SERIE
+	
+	// TODO : faire une fonction initCan()	
+	
     printf("keepRunning %d\n", keepRunning);
 
     while ( keepRunning )
     {
-        trame = lectureTrame(liaisonSerie, buffer, TAILLE_TRAME);
-        if(trame == 1) printf("la trame est correct\n");
-        printf("%s\n", buffer);
-        printf("%c\n", buffer[0]);
+		tailleTrameCanLue = lectureTrameCan(bufferCan, TAILLE_TRAME_CAN));
+		if( tailleTrameCanLue == 0 )
+		{
+			// error
+		}
+		convertIntToChar(tailleTrameCanLue, tailleTrameCanLue_encode, TAILLE_INFO_TRAME_CAN);
+	
+		tailleTrameSerieLue = lectureTrame(liaisonSerie, buffer, TAILLE_TRAME);
+        if( tailleTrameSerieLue == 0 )
+		{
+			// error
+		}
+		convertIntToChar(tailleTrameSerieLue, tailleTrameSerieLue_encode, TAILLE_INFO_TRAME);		
 
         save = saveTrame(fptr, buffer, j, TAILLE_TRAME);
         j++;
@@ -162,92 +187,6 @@ void *thread_runtime (void * arg)
     return 0;
 }
 
-void *thread_runtimeCan (void * arg)
-{
-        printf("je suis dans le thread tramecan\n");
-
-        int s,i;
-        int nbytes;
-        int save;
-        int j=0;
-        struct sockaddr_can addr;
-        struct can_frame frame;
-        struct ifreq ifr;
-        char c;
-        char bufferCan[TAILLE_TRAME_CAN];
-        char *ifname = "can0";
-
-        FILE* fptr = fopen("dataCAN.csv", "w");
-
-        if((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
-        {
-                perror("Error while opening socket");
-                return -1;
-        }
-
-        printf("socket canbus cree avec sucees\n");
-
-        strcpy(ifr.ifr_name, ifname);
-        ioctl(s, SIOCGIFINDEX, &ifr);
-
-        addr.can_family  = AF_CAN;
-        addr.can_ifindex = ifr.ifr_ifindex;
-
-        printf("%s at index %d\n", ifname, ifr.ifr_ifindex);
-
-        if(bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-        {
-                perror("Error in socket bind");
-                return -2;
-        }
-        printf("socket attache avec succes\n");
-
-        //frame.can_id  = 0x123;
-        //frame.can_dlc = 2;
-        //frame.data[0] = 0xB0;
-        //frame.data[1] = 0x0B;
-
-        //nbytes = write(s, &frame, sizeof(struct can_frame));
-        //printf("Wrote %d bytes\n", nbytes);
-
-        //frame.can_id  = 0x456;
-        //frame.can_dlc = 2;
-        //frame.data[0] = 0x13;
-        //frame.data[1] = 0x37;
-
-        //nbytes = write(s, &frame, sizeof(struct can_frame));
-        //printf("Wrote %d bytes\n", nbytes);
-
-        while(keepRunning)
-        {
-          //Read a message back from the CAN bus
-
-
-            nbytes = read( s, &frame, sizeof(struct can_frame));
-            printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);
-            for(i=0; i<frame.can_dlc; i++)
-            printf("%x ",frame.data[i]);
-            printf("\n");
-
-            if(frame.can_id == 0x11)
-            {
-                printf("je detecte bien le message de l identifiant 11\n");
-                printf("Identifiant: %x [%d]\n", frame.can_id, frame.can_dlc);
-                for(i=0; i<frame.can_dlc; i++)
-                {
-                    //printf("%d\n",frame.data[i]);
-                    c=frame.data[i];
-                    printf("%d\n", c);
-                    bufferCan[i]=c;
-                }
-
-                save = saveTrameCan(fptr, bufferCan, j, TAILLE_TRAME_CAN);
-                j++;
-            }
-        }
-
-        return 0;
-}
 
 
 int main()

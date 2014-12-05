@@ -22,14 +22,13 @@ ssize_t ecrireDonnees(int sock, const void *buffer, size_t nb);
 ssize_t lireLigne(int sock, void *buffer, size_t nbMax);
 ssize_t lireDonnees(int sock, void *buffer, size_t nbMax);
 
-
-ssize_t lireLigne(int sock, void *buffer, size_t nbMax);
-
 ssize_t lectureTrame(int liaisonSerie, char * buffer,  size_t nbMax);
+ssize_t lectureTrameCan(char *buffer, size_t tailleBuffer);
 
 int saveTrame(FILE* fptr, char *buffer, int j, int sizeofbuffer);
-
 int saveTrameCan(FILE* fptr, char *bufferCan, int j, int sizeofbuffercan);
+
+void convertIntToChar(int value, char* result, int resultSize);
 
 
 #endif
