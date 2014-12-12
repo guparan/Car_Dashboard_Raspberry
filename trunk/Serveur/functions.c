@@ -165,9 +165,11 @@ int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
             buffer[i]=';';
         }
     }
-    printf("%s\n", buffer);
 	
-	fprintf(fptr, "%d;%s\n", static_ligne, buffer);
+	// TODO try this
+    snprintf("%s\n", sizeofbuffer, buffer);
+	
+	fprintf(fptr, "%d;%s\n", static_ligne, sizeofbuffer, buffer);
 	static_ligne++;
 
 	return 1;
