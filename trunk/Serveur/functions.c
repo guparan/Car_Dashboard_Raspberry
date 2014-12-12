@@ -153,7 +153,7 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 }
 
 
-int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer, int ligne = 0)
+int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
 {
 	static int static_ligne = 0;
 	
@@ -168,40 +168,24 @@ int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer, int ligne = 0)
     }
     printf("%s\n", buffer);
 	
-	if(ligne != 0)
-	{
-		fprintf(fptr, "%d;%s\n", ligne, buffer);
-	}
-	else
-	{
-		fprintf(fptr, "%d;%s\n", static_ligne, buffer);
-		static_ligne++;
-	}
+	fprintf(fptr, "%d;%s\n", static_ligne, buffer);
+	static_ligne++;
 
 	return 1;
 }
 
 
-int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan, int ligne = 0)
+int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan)
 {
 	static int static_ligne = 0;
 
 	printf("Je suis dans la fonction save tramecan\n");
 	printf("%d, %d, %d, %d, %d, %d, %d, %d\n", *bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7));
 	
-	if(ligne != 0)
-	{
-		fprintf( fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", ligne, 
-			*bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7)
-		);
-	}
-	else
-	{
-		fprintf( fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", static_ligne, 
-			*bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7)
-		);
-		static_ligne++;
-	}
+	fprintf( fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", static_ligne, 
+		*bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7)
+	);
+	static_ligne++;
 
 	return 1;
 }
