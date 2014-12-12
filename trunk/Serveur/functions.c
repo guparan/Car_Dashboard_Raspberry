@@ -122,6 +122,10 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 	{
 		//Read a message back from the CAN bus
 		nbytes = read( fdCan, &frame, sizeof(struct can_frame));
+		if(nbytes == 0)
+		{
+			// error
+		}
 
 		printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);
 		for(i=0; i<frame.can_dlc; i++)
@@ -208,7 +212,7 @@ void convertIntToChar(int value, char* result, int resultSize)
 	if( digits == 0 )
 	{
 		// error
-		exit 0;
+		exit(0);
 	}
 	buffer = (char*)malloc(digits+1); // +1 for \n
 	sprintf(buffer, "%d", value);
@@ -227,7 +231,7 @@ void convertIntToChar(int value, char* result, int resultSize)
 }
 
 
-int concatenation(char* frameSerie, char* frameCan, char* tailleTrameSerieLue_encode, char* tailleTrameCanLue_encode)
+void concatenation(char* frameSerie, char* frameCan, char* tailleTrameSerieLue_encode, char* tailleTrameCanLue_encode)
 {
 	int i, j;
 	int longueurTrame = TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME+TAILLE_TRAME_CAN;
@@ -244,5 +248,4 @@ int concatenation(char* frameSerie, char* frameCan, char* tailleTrameSerieLue_en
         if (i==TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME) j=0;
         if (i<TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME+TAILLE_TRAME_CAN) trameTotal[i] = frameCan[j];
     }
-
 }
