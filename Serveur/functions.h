@@ -33,11 +33,8 @@
 #define TAILLE_INFO_TRAME_CAN 1
 
 
-ssize_t ecrireLigne(int sock, const void *buffer, size_t nb);
-ssize_t ecrireDonnees(int sock, const void *buffer, size_t nb);
-
-ssize_t lireLigne(int sock, void *buffer, size_t nbMax);
-ssize_t lireDonnees(int sock, void *buffer, size_t nbMax);
+int initLiaisonSerie();
+int initLiaisonCan();
 
 ssize_t lectureTrame(int liaisonSerie, char * buffer,  size_t nbMax);
 ssize_t lectureTrameCan(int liaisonCan, char *buffer, size_t tailleBuffer);
@@ -45,11 +42,9 @@ ssize_t lectureTrameCan(int liaisonCan, char *buffer, size_t tailleBuffer);
 int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer);
 int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan);
 
+int numberOfEncodingDigits(int number);
 void convertIntToChar(int value, char* result, int resultSize);
 
-int concatenation(char* frameSerie, char* frameCan,char* tailleTrameSerieLue_encode, char* tailleTrameCanLue_encode);
-
-int initLiaisonSerie();
-int initLiaisonCan();
+void concatenation(char* frameSerie, char* frameCan,char* tailleTrameSerieLue_encode, char* tailleTrameCanLue_encode);
 
 #endif
