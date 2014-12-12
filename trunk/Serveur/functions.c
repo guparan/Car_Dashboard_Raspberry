@@ -68,30 +68,28 @@ int initLiaisonCan()
 
 ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
 {
-    ssize_t lus, totalLus = 0;
+    ssize_t lus;
+	int totalLus = 0;
     char data;
-    int i = 0;
     int lecture = 0;
 
-    while( i < tailleBuffer )
+    while( totalLus < tailleBuffer )
     {
         printf("je rentre dans la liaison\n");
         lus = read(liaisonSerie, &data, sizeof data);
-        if( lus < 0)
+        if( lus <= 0)
         {
             printf("erreur : lus = %d \n", lus);
             return lus;     /*erreur*/
         }
 
-
-        totalLus += lus;
         printf("%c\n", data);
 
         if(lecture)
         {
             printf("ajout d'une data au buffer : %c\n", data);
-            buffer[i] = data;
-            i++;
+            buffer[totalLus] = data;
+			totalLus++;
         }
 
         if( data == '+' )
