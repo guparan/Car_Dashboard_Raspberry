@@ -30,5 +30,7 @@ int saveTrameCan(FILE* fptr, char *bufferCan, int j, int sizeofbuffercan);
 
 void convertIntToChar(int value, char* result, int resultSize);
 
+int concatenation(char* frameSerie, char* frameCan,char* tailleTrameSerieLue_encode, char* tailleTrameCanLue_encode);
+
 
 #endif
