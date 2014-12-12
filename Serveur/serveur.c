@@ -25,17 +25,12 @@ void *thread_runtime (void * arg)
 	char* bufferCan = buffer + TAILLE_TRAME;
 
     //char* bufferTest="Testbuffer";
-	char* tailleTrameSerieLue_buffer;
 
     int fdSerie;
 	//int fdCan;
 	
-    int trame;
-    int save;
     int i;
-    int j=0;
     int ecrits=0;
-	int digits = 0;
 	
 	// TESTS
 	int tailleTrameCanLue_int = 8;
