@@ -35,6 +35,10 @@ int initLiaisonSerie()
 int initLiaisonCan()
 {
 	int fdCan = -1;
+    struct ifreq ifr;
+	char *ifname = "can0";
+	struct sockaddr_can addr;
+	struct can_frame frame;
 
 	if((fdCan = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
 	{
@@ -111,16 +115,12 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 {
         int s,i;
         int nbytes;
-        int save;
         int j=0;
-        struct sockaddr_can addr;
-        struct can_frame frame;
-        struct ifreq ifr;
         char c;
-        char *ifname = "can0";
 		int totalLus = 0;
 
-        while(keepRunning)
+		// TODO : stop loop after 1000 negative frames ?
+        while(1)
         {
 			//Read a message back from the CAN bus
 
@@ -147,9 +147,9 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 
 				return totalLus;
             }
-        }
-
-        return 0;
+        }	
+		
+        return 0; // never reached
 }
 
 
@@ -204,6 +204,8 @@ int numberOfEncodingDigits(int number)
 void convertIntToChar(int value, char* result, int resultSize)
 {
 	char* buffer;
+	int digits = 0;
+	int i, j;
 
 	digits = numberOfEncodingDigits(value);
 	if( digits == 0 )
@@ -214,8 +216,7 @@ void convertIntToChar(int value, char* result, int resultSize)
 	buffer = (char*)malloc(digits+1); // +1 for \n
 	sprintf(buffer, "%d", value);
 
-	j=0;
-	for(i = 0 ; i < resultSize ; i++)
+	for(i = 0, j = 0 ; i < resultSize ; i++)
 	{
 		if( i < resultSize-digits ) result[i] = '0';
 		else
