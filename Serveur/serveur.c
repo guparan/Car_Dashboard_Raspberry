@@ -55,7 +55,7 @@ void *thread_runtime (void * arg)
 	char* tailleTrameSerieLue_char = trameClient;
 	char* tailleTrameCanLue_char = tailleTrameSerieLue_char + TAILLE_INFO_TRAME;
 	char* buffer = tailleTrameCanLue_char + TAILLE_INFO_TRAME_CAN;
-	char* bufferCan = buffer + TAILLE_TRAME
+	char* bufferCan = buffer + TAILLE_TRAME;
 
     //char* bufferTest="Testbuffer";
 	char* tailleTrameSerieLue_buffer;
