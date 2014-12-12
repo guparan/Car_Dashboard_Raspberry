@@ -38,7 +38,6 @@ int initLiaisonCan()
     struct ifreq ifr;
 	char *ifname = "can0";
 	struct sockaddr_can addr;
-	struct can_frame frame;
 
 	if((fdCan = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
 	{
@@ -54,7 +53,7 @@ int initLiaisonCan()
 	addr.can_family  = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
 
-	printf("%fdCan at index %d\n", ifname, ifr.ifr_ifindex);
+	printf("%s at index %d\n", ifname, ifr.ifr_ifindex);
 
 	if(bind(fdCan, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 	{
@@ -113,43 +112,41 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
 
 ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 {
-        int s,i;
-        int nbytes;
-        int j=0;
-        char c;
-		int totalLus = 0;
+	int i;
+	int nbytes;
+	int totalLus = 0;
+	struct can_frame frame;
 
-		// TODO : stop loop after 1000 negative frames ?
-        while(1)
-        {
-			//Read a message back from the CAN bus
+	// TODO : stop loop after 1000 negative frames ?
+	while(1)
+	{
+		//Read a message back from the CAN bus
+		nbytes = read( fdCan, &frame, sizeof(struct can_frame));
 
-            nbytes = read( fdCan, &frame, sizeof(struct can_frame));
+		printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);
+		for(i=0; i<frame.can_dlc; i++)
+		{
+			printf("%x ",frame.data[i]);
+		}
+		printf("\n");
 
-            printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);
-            for(i=0; i<frame.can_dlc; i++)
+		if(frame.can_id == 0x11)
+		{
+			printf("je detecte bien le message de l identifiant 11\n");
+			printf("Identifiant: %x [%d]\n", frame.can_id, frame.can_dlc);
+			for(i=0; i<frame.can_dlc; i++)
 			{
-				printf("%x ",frame.data[i]);
+				//printf("%d\n",frame.data[i]);
+				buffer[i] = frame.data[i];
+				printf("%d\n", buffer[i]);
+				totalLus++;
 			}
-			printf("\n");
 
-            if(frame.can_id == 0x11)
-            {
-                printf("je detecte bien le message de l identifiant 11\n");
-                printf("Identifiant: %x [%d]\n", frame.can_id, frame.can_dlc);
-                for(i=0; i<frame.can_dlc; i++)
-                {
-                    //printf("%d\n",frame.data[i]);
-                    buffer[i] = frame.data[i];
-                    printf("%d\n", buffer[i]);
-					totalLus++;
-                }
-
-				return totalLus;
-            }
-        }	
-		
-        return 0; // never reached
+			return totalLus;
+		}
+	}	
+	
+	return 0; // never reached
 }
 
 
