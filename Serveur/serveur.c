@@ -1,38 +1,5 @@
-// URL : http://collabedit.com/7fpwk
-
-// Bibliotheques
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <termios.h>
-#include <sys/fcntl.h>
-#include <pthread.h>
-#include <errno.h>
-#include <signal.h>
-
-//CanBus
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <linux/can.h>
-#include <linux/can/raw.h>
-
 // Fonctions
 #include "functions.h"
-
-// Constantes
-#define PORT 8080
-#define LG_MESSAGE 256
-#define CLIENT_MAX 5
-#define TAILLE_TRAME 10
-#define TAILLE_TRAME_CAN 8
-#define TAILLE_INFO_TRAME 3
-#define TAILLE_INFO_TRAME_CAN 1
 
 
 static int keepRunning = 1;
@@ -61,7 +28,7 @@ void *thread_runtime (void * arg)
 	char* tailleTrameSerieLue_buffer;
 
     int fdSerie;
-	int fdCan;
+	//int fdCan;
 	
     int trame;
     int save;
@@ -158,7 +125,7 @@ void *thread_runtime (void * arg)
         }
     }
     close(fdSerie);
-    close(fdCan);
+    //close(fdCan);
 	
     printf("fin du thread\n");
     return 0;
@@ -169,7 +136,6 @@ void *thread_runtime (void * arg)
 int main()
 {
     pthread_t thread;
-    pthread_t threadCan;
     int socketServeur;
     int socketClient;
     int i;
@@ -220,9 +186,6 @@ int main()
     //memset(buffer,0x00,LG_MESSAGE*sizeof(char));
     pthread_create(&thread, NULL, thread_runtime, clients);
     printf("creation du thread\n");
-
-    pthread_create(&threadCan, NULL, thread_runtimeCan, clients);
-    printf("creation du threadCan\n");
 
     while(1)
     {
