@@ -130,7 +130,7 @@ ssize_t lectureTrameCan(char *buffer, size_t tailleBuffer)
 					perror("Error in socket bind");
 					return -2;
 			}
-			printf("socket attache avec succes\n");		
+			printf("socket attache avec succes\n");
 		// INIT CAN
 
         //frame.can_id  = 0x123;
@@ -154,8 +154,8 @@ ssize_t lectureTrameCan(char *buffer, size_t tailleBuffer)
 			//Read a message back from the CAN bus
 
             nbytes = read( s, &frame, sizeof(struct can_frame));
-			
-            printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);			
+
+            printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);
             for(i=0; i<frame.can_dlc; i++)
 			{
 				printf("%x ",frame.data[i]);
@@ -176,7 +176,7 @@ ssize_t lectureTrameCan(char *buffer, size_t tailleBuffer)
 
                 save = saveTrameCan(fptr, bufferCan, j, TAILLE_TRAME_CAN);
                 j++;
-				
+
 				return totalLus;
             }
         }
@@ -204,8 +204,8 @@ int saveTrame(FILE* fptr, char *buffer, int j, int sizeofbuffer)
 
 int saveTrameCan(FILE* fptr, char *bufferCan, int j, int sizeofbuffercan, int test = 0)
 {
-	//static int ligne = 0;	
-	
+	//static int ligne = 0;
+
 	printf("Je suis dans la fonction save tramecan\n");
 	printf("%d, %d, %d, %d, %d, %d, %d, %d\n", *bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7));
 	fprintf(fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", j, *bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7));
@@ -234,17 +234,40 @@ void convertIntToChar(int value, char* result, int resultSize)
 	}
 	buffer = (char*)malloc(digits+1); // +1 for \n
 	sprintf(buffer, "%d", value);
-	
+
 	j=0;
 	for(i = 0 ; i < resultSize ; i++)
 	{
 		if( i < resultSize-digits ) result[i] = '0';
-		else 
+		else
 		{
 			result[i] = buffer[j];
 			j++;
-		}			
+		}
 	}
-	
+
 	free(buffer);
+}
+
+int concatenation(char* frameSerie, char* frameCan, char* tailleTrameSerieLue_encode, char* tailleTrameCanLue_encode)
+{
+
+int i, j;
+sizeof longueurTrame;
+longueurTrame = 30;
+
+char* trameTotal = malloc(longueurTrame);
+
+
+    for(i=0, j=0 ; i<longueurTrame ; i++ , j++)
+    {
+        if (i<TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN) trameTotal[i] = tailleTrameSerieLue_encode[j];
+        if (i==TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN) j=0;
+        if (i<TAILLE_INFO_TRAME) trameTotal[i] = tailleTrameCanLue_encode[j];
+        if (i==TAILLE_INFO_TRAME) j=0;
+        if (i<TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME) trameTotal[i] = frameSerie[j];
+        if (i==TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME) j=0;
+        if (i<TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME+TAILLE_TRAME_CAN) trameTotal[i] = frameCan[j];
+    }
+
 }

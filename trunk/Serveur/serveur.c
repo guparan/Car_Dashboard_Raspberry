@@ -51,6 +51,7 @@ void *thread_runtime (void * arg)
     int * clients=(int *)arg;
 
     char buffer[TAILLE_TRAME];
+    char bufferCan[TAILLE_TRAME_CAN];
     //char* bufferTest="Testbuffer";
 	char* tailleTrameSerieLue_buffer;
 
@@ -61,12 +62,12 @@ void *thread_runtime (void * arg)
     int j=0;
     int ecrits=0;
 	int digits = 0;
-	
+
     struct termios termios_p;
-	
+
 	int tailleTrameCanLue = 0;
 	char tailleTrameCanLue_encode[TAILLE_INFO_TRAME_CAN];
-	
+
 	int tailleTrameSerieLue = 0;
 	char tailleTrameSerieLue_encode[TAILLE_INFO_TRAME];
 
@@ -98,9 +99,9 @@ void *thread_runtime (void * arg)
 		/* Sauvegarde des nouveaux parametres */
 		tcsetattr(liaisonSerie,TCSANOW,&termios_p);
 	// FIN INIT SERIE
-	
-	// TODO : faire une fonction initCan()	
-	
+
+	// TODO : faire une fonction initCan()
+
     printf("keepRunning %d\n", keepRunning);
 
     while ( keepRunning )
@@ -111,17 +112,19 @@ void *thread_runtime (void * arg)
 			// error
 		}
 		convertIntToChar(tailleTrameCanLue, tailleTrameCanLue_encode, TAILLE_INFO_TRAME_CAN);
-	
+
 		tailleTrameSerieLue = lectureTrame(liaisonSerie, buffer, TAILLE_TRAME);
         if( tailleTrameSerieLue == 0 )
 		{
 			// error
 		}
-		convertIntToChar(tailleTrameSerieLue, tailleTrameSerieLue_encode, TAILLE_INFO_TRAME);		
+		convertIntToChar(tailleTrameSerieLue, tailleTrameSerieLue_encode, TAILLE_INFO_TRAME);
 
         save = saveTrame(fptr, buffer, j, TAILLE_TRAME);
         j++;
         if(save == 1) printf("la sauvegarde a bien ete faite \n");
+
+        concatenation(buffer, bufferCan, tailleTrameSerieLue_encode, tailleTrameCanLue_encode);
 
         //system("gnuplot gnuplot_config");
 
