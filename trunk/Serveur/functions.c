@@ -207,6 +207,8 @@ void convertIntToChar(int value, char* result, int resultSize)
 	char* buffer;
 	int digits = 0;
 	int i, j;
+	
+	printf("conversion du nombre %d : ", value);
 
 	digits = numberOfEncodingDigits(value);
 	if( digits == 0 )
@@ -225,7 +227,10 @@ void convertIntToChar(int value, char* result, int resultSize)
 			result[i] = buffer[j];
 			j++;
 		}
+		printf("%c", result[i]);
 	}
+	
+	printf("\n");
 
 	free(buffer);
 }
