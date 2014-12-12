@@ -16,6 +16,12 @@
 #include <errno.h>
 #include <signal.h>
 
+//CanBus
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
+
 // Fonctions
 #include "functions.h"
 
@@ -24,15 +30,9 @@
 #define LG_MESSAGE 256
 #define CLIENT_MAX 5
 #define TAILLE_TRAME 10
-#define TAILLE_TRAME_CAN 20
+#define TAILLE_TRAME_CAN 8
 #define TAILLE_INFO_TRAME 3
 #define TAILLE_INFO_TRAME_CAN 1
-
-//CanBus
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <linux/can.h>
-#include <linux/can/raw.h>
 
 
 static int keepRunning = 1;
@@ -49,84 +49,66 @@ void intHandler(int sig)
 void *thread_runtime (void * arg)
 {
     int * clients=(int *)arg;
+	
+	int tailleTrameClient = TAILLE_TRAME+TAILLE_TRAME_CAN+TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN;
+	char* trameClient = (char*)malloc(tailleTrameClient);
+	char* tailleTrameSerieLue_char = trameClient;
+	char* tailleTrameCanLue_char = tailleTrameSerieLue_char + TAILLE_INFO_TRAME;
+	char* buffer = tailleTrameCanLue_char + TAILLE_INFO_TRAME_CAN;
+	char* bufferCan = buffer + TAILLE_TRAME
 
-    char buffer[TAILLE_TRAME];
-    char bufferCan[TAILLE_TRAME_CAN];
     //char* bufferTest="Testbuffer";
 	char* tailleTrameSerieLue_buffer;
 
-    int liaisonSerie;
+    int fdSerie;
+	int fdCan;
+	
     int trame;
     int save;
     int i;
     int j=0;
     int ecrits=0;
 	int digits = 0;
+	
+	// TESTS
+	int tailleTrameCanLue_int = 8;
+	for(i=0 ; i<8 ; i++)
+	{
+		bufferCan[i] = (char)i+40;
+	}
+	
+	//int tailleTrameCanLue_int = 0;	
+	int tailleTrameSerieLue_int = 0;
+	
+	printf("thread cree\n");
 
-    struct termios termios_p;
-
-	int tailleTrameCanLue = 0;
-	char tailleTrameCanLue_encode[TAILLE_INFO_TRAME_CAN];
-
-	int tailleTrameSerieLue = 0;
-	char tailleTrameSerieLue_encode[TAILLE_INFO_TRAME];
-
-	// TODO : faire une fonction initSerie()
-	// INIT SERIE
-		FILE* fptr = fopen("data.csv", "w");
-
-		printf("thread cree\n");
-
-		if ( (liaisonSerie = open("/dev/ttyAMA0",O_RDONLY)) == -1 )
-		{
-			printf("error on open");
-			exit(-1);
-		}
-
-		/* Lecture des parametres courants */
-		tcgetattr(liaisonSerie,&termios_p);
-		/* On ignore les BREAK et les caracteres avec erreurs de parite */
-		termios_p.c_iflag = IGNBRK | IGNPAR;
-		/* Pas de mode de sortie particulier */
-		termios_p.c_oflag = 0;
-		/* Liaison a 9600 bps avec 7 bits de donnees et une parite paire */
-		termios_p.c_cflag = B9600 | CS7 | PARENB;
-		/* Mode non-canonique avec echo */
-		termios_p.c_lflag = ECHO;
-		/* Caracteres immediatement disponibles */
-		termios_p.c_cc[VMIN] = 1;
-		termios_p.c_cc[VTIME] = 0;
-		/* Sauvegarde des nouveaux parametres */
-		tcsetattr(liaisonSerie,TCSANOW,&termios_p);
-	// FIN INIT SERIE
-
-	// TODO : faire une fonction initCan()
-
+	FILE* logSerie = fopen("data.csv", "w");
+	FILE* logCan = fopen("dataCAN.csv", "w");
+	
+	fdSerie = initLiaisonSerie();
+	//fdCan = initLiaisonCan();
+	
     printf("keepRunning %d\n", keepRunning);
 
     while ( keepRunning )
     {
-		tailleTrameCanLue = lectureTrameCan(bufferCan, TAILLE_TRAME_CAN));
-		if( tailleTrameCanLue == 0 )
+		// LECTURE TRAME CAN
+		//tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN));
+		if( tailleTrameCanLue_int == 0 )
 		{
 			// error
 		}
-		convertIntToChar(tailleTrameCanLue, tailleTrameCanLue_encode, TAILLE_INFO_TRAME_CAN);
-
-		tailleTrameSerieLue = lectureTrame(liaisonSerie, buffer, TAILLE_TRAME);
-        if( tailleTrameSerieLue == 0 )
+		if( saveTrameCan(logCan, bufferCan, TAILLE_TRAME_CAN) ) printf("la sauvegarde CAN a bien ete faite \n");
+		convertIntToChar(tailleTrameCanLue_int, tailleTrameCanLue_char, TAILLE_INFO_TRAME_CAN);
+		
+		// LECTURE TRAME SERIE
+		tailleTrameSerieLue_int = lectureTrame(fdSerie, buffer, TAILLE_TRAME);
+        if( tailleTrameSerieLue_int == 0 )
 		{
 			// error
 		}
-		convertIntToChar(tailleTrameSerieLue, tailleTrameSerieLue_encode, TAILLE_INFO_TRAME);
-
-        save = saveTrame(fptr, buffer, j, TAILLE_TRAME);
-        j++;
-        if(save == 1) printf("la sauvegarde a bien ete faite \n");
-
-        concatenation(buffer, bufferCan, tailleTrameSerieLue_encode, tailleTrameCanLue_encode);
-
-        //system("gnuplot gnuplot_config");
+        if( saveTrame(logSerie, buffer, TAILLE_TRAME) ) printf("la sauvegarde SERIE a bien ete faite \n");
+		convertIntToChar(tailleTrameSerieLue_int, tailleTrameSerieLue_char, TAILLE_INFO_TRAME);		
 
         for(i=0 ; i<CLIENT_MAX ; i++)
         {
@@ -137,7 +119,7 @@ void *thread_runtime (void * arg)
                 continue;
             }
             printf("tentative decriture sur le client %d \n", i);
-            ecrits = write(clients[i], buffer, TAILLE_TRAME);
+            ecrits = write(clients[i], trameClient, tailleTrameClient);
             printf("code de retour du write : %d \n", ecrits);
 
             if(ecrits == -1)
@@ -175,18 +157,10 @@ void *thread_runtime (void * arg)
             clients[i] = -1;
         }
     }
-    close(liaisonSerie);
+    close(fdSerie);
+    close(fdCan);
+	
     printf("fin du thread\n");
-
-    for(i=0 ; i<CLIENT_MAX ; i++)
-    {
-        if(clients[i] != -1)
-        {
-            close(clients[i]);
-            clients[i] = -1;
-        }
-    }
-
     return 0;
 }
 

@@ -1,51 +1,67 @@
 #include "functions.h"
 
-ssize_t ecrireLigne(int sock, const void *buffer, size_t nb){
-    ssize_t aEcrire, ecrits;
-    aEcrire = nb;
-    while( aEcrire > 0){
-        ecrits = write(sock, buffer, aEcrire);
-        if( ecrits <= 0){
-            return ecrits;  /*erreur ou fin d'ecriture*/
-    }
-        aEcrire -= ecrits;  /*on decompte le nombre d'octets deja ecrits*/
-        buffer += ecrits;   /*on se deplace du nombre d'octets deja ecrits*/
-    }
-    ecrits = write(sock, "\r\n", 2);
-    if( ecrits == 2){
-        return 1;   //ok
-    }
-    return ecrits;
+
+int initLiaisonSerie()
+{
+	int fdSerie = -1;
+    struct termios termios_p;
+
+	if ( (fdSerie = open("/dev/ttyAMA0",O_RDONLY)) == -1 )
+	{
+		printf("error on open");
+		exit(-1);
+	}
+
+	/* Lecture des parametres courants */
+	tcgetattr(fdSerie,&termios_p);
+	/* On ignore les BREAK et les caracteres avec erreurs de parite */
+	termios_p.c_iflag = IGNBRK | IGNPAR;
+	/* Pas de mode de sortie particulier */
+	termios_p.c_oflag = 0;
+	/* Liaison a 9600 bps avec 7 bits de donnees et une parite paire */
+	termios_p.c_cflag = B9600 | CS7 | PARENB;
+	/* Mode non-canonique avec echo */
+	termios_p.c_lflag = ECHO;
+	/* Caracteres immediatement disponibles */
+	termios_p.c_cc[VMIN] = 1;
+	termios_p.c_cc[VTIME] = 0;
+	/* Sauvegarde des nouveaux parametres */
+	tcsetattr(fdSerie,TCSANOW,&termios_p);
+	
+	return fdSerie;
 }
 
-ssize_t lireLigne(int sock, void *buffer, size_t nbMax){
-    ssize_t aLire, lus;
-    char data;
-    char *debut = (char *)buffer;
-    char *ligne;
 
-    aLire = nbMax;
-    while( aLire > 0 ){
-        lus = read(sock, &data, 1);
-        if( lus < 0){
-            return lus;     /*erreur*/
-        }else if( lus == 0 ){
-                return 0;   /*fin de lecture*/
-        }
-        *(char *)buffer = data;
-        aLire -= lus;   /*on decompte le nombre d'octets deja lus*/
-        buffer +=lus;   /*on se deplace du nombre d'octets deja lus*/
-        *(char *)buffer = 0x00; /*fin de chaine*/
-         /*on recherche les delimiteurs "\r\n"*/
-        ligne = (char *)strstr(debut, "\r\n");
-        if(ligne != NULL){
-            buffer -= 2;    /*on se recule du nombre d'octets des delimiteurs*/
-            *(char *)buffer = 0x00; /*fin de chaine*/
-            return 1;   //ok
-        }
-    }
-    return (nbMax - aLire);
+int initLiaisonCan()
+{
+	int fdCan = -1;
+
+	if((fdCan = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
+	{
+		perror("Error while opening socket");
+		return -1;
+	}
+
+	printf("socket canbus cree avec sucees\n");
+
+	strcpy(ifr.ifr_name, ifname);
+	ioctl(fdCan, SIOCGIFINDEX, &ifr);
+
+	addr.can_family  = AF_CAN;
+	addr.can_ifindex = ifr.ifr_ifindex;
+
+	printf("%fdCan at index %d\n", ifname, ifr.ifr_ifindex);
+
+	if(bind(fdCan, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+	{
+		perror("Error in socket bind");
+		return -2;
+	}
+	printf("socket attache avec succes\n");
+	
+	return fdCan;
 }
+
 
 ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
 {
@@ -90,10 +106,9 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
     return totalLus;
 }
 
-ssize_t lectureTrameCan(char *buffer, size_t tailleBuffer)
-{
-        printf("je suis dans le thread tramecan\n");
 
+ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
+{
         int s,i;
         int nbytes;
         int save;
@@ -102,58 +117,14 @@ ssize_t lectureTrameCan(char *buffer, size_t tailleBuffer)
         struct can_frame frame;
         struct ifreq ifr;
         char c;
-        //char bufferCan[TAILLE_TRAME_CAN];
         char *ifname = "can0";
 		int totalLus = 0;
-
-		// INIT CAN
-			FILE* fptr = fopen("dataCAN.csv", "w");
-
-			if((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
-			{
-					perror("Error while opening socket");
-					return -1;
-			}
-
-			printf("socket canbus cree avec sucees\n");
-
-			strcpy(ifr.ifr_name, ifname);
-			ioctl(s, SIOCGIFINDEX, &ifr);
-
-			addr.can_family  = AF_CAN;
-			addr.can_ifindex = ifr.ifr_ifindex;
-
-			printf("%s at index %d\n", ifname, ifr.ifr_ifindex);
-
-			if(bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-			{
-					perror("Error in socket bind");
-					return -2;
-			}
-			printf("socket attache avec succes\n");
-		// INIT CAN
-
-        //frame.can_id  = 0x123;
-        //frame.can_dlc = 2;
-        //frame.data[0] = 0xB0;
-        //frame.data[1] = 0x0B;
-
-        //nbytes = write(s, &frame, sizeof(struct can_frame));
-        //printf("Wrote %d bytes\n", nbytes);
-
-        //frame.can_id  = 0x456;
-        //frame.can_dlc = 2;
-        //frame.data[0] = 0x13;
-        //frame.data[1] = 0x37;
-
-        //nbytes = write(s, &frame, sizeof(struct can_frame));
-        //printf("Wrote %d bytes\n", nbytes);
 
         while(keepRunning)
         {
 			//Read a message back from the CAN bus
 
-            nbytes = read( s, &frame, sizeof(struct can_frame));
+            nbytes = read( fdCan, &frame, sizeof(struct can_frame));
 
             printf("Identifiant: %x [%d] ", frame.can_id, frame.can_dlc);
             for(i=0; i<frame.can_dlc; i++)
@@ -174,9 +145,6 @@ ssize_t lectureTrameCan(char *buffer, size_t tailleBuffer)
 					totalLus++;
                 }
 
-                save = saveTrameCan(fptr, bufferCan, j, TAILLE_TRAME_CAN);
-                j++;
-
 				return totalLus;
             }
         }
@@ -184,8 +152,11 @@ ssize_t lectureTrameCan(char *buffer, size_t tailleBuffer)
         return 0;
 }
 
-int saveTrame(FILE* fptr, char *buffer, int j, int sizeofbuffer)
+
+int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer, int ligne = 0)
 {
+	static int static_ligne = 0;
+	
     int i;
     for(i=0 ; i<sizeofbuffer ; i++)
     {
@@ -196,22 +167,45 @@ int saveTrame(FILE* fptr, char *buffer, int j, int sizeofbuffer)
         }
     }
     printf("%s\n", buffer);
-    fprintf(fptr, "%d;%s\n", j, buffer);
+	
+	if(ligne != 0)
+	{
+		fprintf(fptr, "%d;%s\n", ligne, buffer);
+	}
+	else
+	{
+		fprintf(fptr, "%d;%s\n", static_ligne, buffer);
+		static_ligne++;
+	}
 
-
- return 1;
+	return 1;
 }
 
-int saveTrameCan(FILE* fptr, char *bufferCan, int j, int sizeofbuffercan, int test = 0)
+
+int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan, int ligne = 0)
 {
-	//static int ligne = 0;
+	static int static_ligne = 0;
 
 	printf("Je suis dans la fonction save tramecan\n");
 	printf("%d, %d, %d, %d, %d, %d, %d, %d\n", *bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7));
-	fprintf(fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", j, *bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7));
+	
+	if(ligne != 0)
+	{
+		fprintf( fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", ligne, 
+			*bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7)
+		);
+	}
+	else
+	{
+		fprintf( fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", static_ligne, 
+			*bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7)
+		);
+		static_ligne++;
+	}
 
-	//ligne++;
+	return 1;
 }
+
 
 int numberOfEncodingDigits(int number)
 {
@@ -221,6 +215,7 @@ int numberOfEncodingDigits(int number)
 	if( number < 1000) return 3;
 	else return 0;
 }
+
 
 void convertIntToChar(int value, char* result, int resultSize)
 {
@@ -249,15 +244,13 @@ void convertIntToChar(int value, char* result, int resultSize)
 	free(buffer);
 }
 
+
 int concatenation(char* frameSerie, char* frameCan, char* tailleTrameSerieLue_encode, char* tailleTrameCanLue_encode)
 {
+	int i, j;
+	int longueurTrame = TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME+TAILLE_TRAME_CAN;
 
-int i, j;
-sizeof longueurTrame;
-longueurTrame = 30;
-
-char* trameTotal = malloc(longueurTrame);
-
+	char* trameTotal = malloc(longueurTrame);
 
     for(i=0, j=0 ; i<longueurTrame ; i++ , j++)
     {
