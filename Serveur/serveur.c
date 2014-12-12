@@ -36,7 +36,7 @@ void *thread_runtime (void * arg)
 	int tailleTrameCanLue_int = 8;
 	for(i=0 ; i<8 ; i++)
 	{
-		bufferCan[i] = (char)i+40;
+		bufferCan[i] = (char)i+70;
 	}
 	
 	//int tailleTrameCanLue_int = 0;	
@@ -103,11 +103,9 @@ void *thread_runtime (void * arg)
             }
 			else
 			{
-				printf("Send messages finished:%s (%d octets)!\n", buffer, ecrits);
+				printf("Trame envoyee au client : %s (%d octets)\n", trameClient, ecrits);
 			}
 		}
-
-        //printf("%03u %02x %c\n",c&0xff,c&0xff,c);
     }
 
     // Ce code est atteint si keepRunning == 0
