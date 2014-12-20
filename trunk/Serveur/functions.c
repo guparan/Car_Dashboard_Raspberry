@@ -157,24 +157,16 @@ int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
 	static int static_ligne = 0;
 	
     int i;
-    for(i=0 ; i<sizeofbuffer ; i++)
-    {
-        if(buffer[i] == ' ')
-        {
-            printf("je detecte bien lespace\n");
-            buffer[i]=';';
-        }
-    }
 	
 	// TODO try this
     //snprintf("%s\n", sizeofbuffer, buffer);
 	
 	fprintf(fptr, "%d;", static_ligne);
-	for(i=0 ; i<TAILLE_TRAME-1 ; i++)
+	for(i=0 ; i<TAILLE_TRAME ; i++)
 	{
-		fprintf(fptr, "%c;", buffer[i]);
+		if(buffer[i] == ' ') fprintf(fptr, ";");
+		else fprintf(fptr, "%c", buffer[i]);
 	}
-	fprintf(fptr, "%c", buffer[i]);
 	fprintf(fptr, "\n");
 	
 	static_ligne++;
@@ -200,9 +192,9 @@ int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan)
 	fprintf(fptr, "%d;", static_ligne);
 	for(i=0 ; i<TAILLE_TRAME_CAN-1 ; i++)
 	{
-		fprintf(fptr, "%c;", bufferCan[i]);
+		fprintf(fptr, "%d;", bufferCan[i]);
 	}
-	fprintf(fptr, "%c", bufferCan[i]);
+	fprintf(fptr, "%d", bufferCan[i]);
 	fprintf(fptr, "\n");
 	
 	static_ligne++;
