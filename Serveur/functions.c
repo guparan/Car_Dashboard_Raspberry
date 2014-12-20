@@ -5,12 +5,16 @@ int initLiaisonSerie()
 {
 	int fdSerie = -1;
     struct termios termios_p;
+	FILE* file;
 
-	if ( (fdSerie = open("/dev/ttyAMA0",O_RDONLY)) == -1 )
+	if ( (file = fopen("/dev/ttyAMA0", "r")) == NULL )
 	{
 		printf("error on open");
 		exit(-1);
 	}
+	
+	setvbuf(file, NULL, _IOFBF, TAILLE_TRAME);
+	fdSerie = fileno(file);
 
 	/* Lecture des parametres courants */
 	tcgetattr(fdSerie,&termios_p);
@@ -38,10 +42,16 @@ int initLiaisonCan()
     struct ifreq ifr;
 	char *ifname = "can0";
 	struct sockaddr_can addr;
+	int n = TAILLE_TRAME_CAN;
 
 	if((fdCan = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
 	{
 		perror("Error while opening socket");
+		return -1;
+	}
+	
+	if ( setsockopt(fdCan, SOL_SOCKET, SO_RCVBUF, &n, sizeof(n)) == -1 ) 
+	{
 		return -1;
 	}
 
@@ -72,6 +82,8 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
 	int totalLus = 0;
     char data;
     int lecture = 0;
+	
+	
 
     while( totalLus < tailleBuffer )
     {
