@@ -17,7 +17,7 @@ void *thread_runtime (void * arg)
 {
     int * clients=(int *)arg;
 	
-	int tailleTrameClient = TAILLE_TRAME+TAILLE_TRAME_CAN+TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN;
+	int tailleTrameClient = TAILLE_INFO_TRAME + TAILLE_INFO_TRAME_CAN + TAILLE_TRAME + TAILLE_TRAME_CAN;
 	char* trameClient = (char*)malloc(tailleTrameClient);
 	char* tailleTrameSerieLue_char = trameClient;
 	char* tailleTrameCanLue_char = tailleTrameSerieLue_char + TAILLE_INFO_TRAME;
@@ -104,7 +104,13 @@ void *thread_runtime (void * arg)
             }
 			else
 			{
-				printf("Trame envoyee au client : %s (%d octets)\n", trameClient, ecrits);
+				printf("Trame envoyee au client : ");
+				for(i=0 ; i < tailleTrameClient ; i++)
+				{
+					if(i < TAILLE_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_INFO_TRAME) printf("%c", trameClient[i]);
+					else printf("%d", trameClient[i]);
+				}
+				printf("(%d octets)\n", ecrits);
 			}
 		}
     }
