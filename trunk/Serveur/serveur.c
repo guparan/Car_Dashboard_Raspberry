@@ -56,7 +56,7 @@ void *thread_runtime (void * arg)
     while ( keepRunning )
     {
 		// LECTURE TRAME CAN
-		//tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN));
+		tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
 		if( tailleTrameCanLue_int == 0 )
 		{
 			// error
