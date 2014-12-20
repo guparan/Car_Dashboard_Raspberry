@@ -27,19 +27,20 @@ void *thread_runtime (void * arg)
     //char* bufferTest="Testbuffer";
 
     int fdSerie;
-	//int fdCan;
+	int fdCan;
 	
     int i;
     int ecrits=0;
 	
 	// TESTS
+	/*
 	int tailleTrameCanLue_int = 8;
 	for(i=0 ; i<8 ; i++)
 	{
 		bufferCan[i] = (char)i+70;
 	}
-	
-	//int tailleTrameCanLue_int = 0;	
+	*/
+	int tailleTrameCanLue_int = 0;	
 	int tailleTrameSerieLue_int = 0;
 	
 	printf("thread cree\n");
@@ -48,7 +49,7 @@ void *thread_runtime (void * arg)
 	FILE* logCan = fopen("dataCAN.csv", "w");
 	
 	fdSerie = initLiaisonSerie();
-	//fdCan = initLiaisonCan();
+	fdCan = initLiaisonCan();
 	
     printf("keepRunning %d\n", keepRunning);
 
@@ -117,8 +118,9 @@ void *thread_runtime (void * arg)
             clients[i] = -1;
         }
     }
-    close(fdSerie);
-    //close(fdCan);
+    
+	close(fdSerie);
+    close(fdCan);
 	
     printf("fin du thread\n");
     return 0;
