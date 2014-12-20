@@ -42,6 +42,7 @@ void *thread_runtime (void * arg)
 	*/
 	int tailleTrameCanLue_int = 0;	
 	int tailleTrameSerieLue_int = 0;
+	int lectureTrameFaite = 0;
 	
 	printf("thread cree\n");
 
@@ -55,24 +56,8 @@ void *thread_runtime (void * arg)
 
     while ( keepRunning )
     {
-		// LECTURE TRAME CAN
-		tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
-		if( tailleTrameCanLue_int == 0 )
-		{
-			// error
-		}
-		if( saveTrameCan(logCan, bufferCan, TAILLE_TRAME_CAN) ) printf("la sauvegarde CAN a bien ete faite \n");
-		convertIntToChar(tailleTrameCanLue_int, tailleTrameCanLue_char, TAILLE_INFO_TRAME_CAN);
+		lectureTrameFaite = 0;
 		
-		// LECTURE TRAME SERIE
-		tailleTrameSerieLue_int = lectureTrame(fdSerie, buffer, TAILLE_TRAME);
-        if( tailleTrameSerieLue_int == 0 )
-		{
-			// error
-		}
-        if( saveTrame(logSerie, buffer, TAILLE_TRAME) ) printf("la sauvegarde SERIE a bien ete faite \n");
-		convertIntToChar(tailleTrameSerieLue_int, tailleTrameSerieLue_char, TAILLE_INFO_TRAME);		
-
         for(i=0 ; i<CLIENT_MAX ; i++)
         {
             //printf("check client %d\n", i);
@@ -81,6 +66,28 @@ void *thread_runtime (void * arg)
                 //printf("Pas de client a %d\n", i);
                 continue;
             }
+			
+			if(!lectureTramesFaite) // On ne fait la lecture que si on a au moins 1 client
+			{
+				// LECTURE TRAME CAN
+				tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
+				if( tailleTrameCanLue_int == 0 )
+				{
+					// error
+				}
+				convertIntToChar(tailleTrameCanLue_int, tailleTrameCanLue_char, TAILLE_INFO_TRAME_CAN);
+				
+				// LECTURE TRAME SERIE
+				tailleTrameSerieLue_int = lectureTrame(fdSerie, buffer, TAILLE_TRAME);
+				if( tailleTrameSerieLue_int == 0 )
+				{
+					// error
+				}
+				convertIntToChar(tailleTrameSerieLue_int, tailleTrameSerieLue_char, TAILLE_INFO_TRAME);	
+
+				lectureTrameFaite = 1;				
+			}
+			
             printf("tentative decriture sur le client %d \n", i);
             ecrits = write(clients[i], trameClient, tailleTrameClient);
             printf("code de retour du write : %d \n", ecrits);
@@ -111,6 +118,9 @@ void *thread_runtime (void * arg)
 					else printf("%d", trameClient[i]);
 				}
 				printf("(%d octets)\n", ecrits);
+				
+				if( saveTrameCan(logCan, bufferCan, TAILLE_TRAME_CAN) ) printf("la sauvegarde CAN a bien ete faite \n");				
+				if( saveTrame(logSerie, buffer, TAILLE_TRAME) ) printf("la sauvegarde SERIE a bien ete faite \n");
 			}
 		}
     }

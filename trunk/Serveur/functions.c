@@ -154,8 +154,7 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 
 int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
 {
-	static int static_ligne = 0;
-	
+	static int static_ligne = 0;	
     int i;
 	
 	// TODO try this
