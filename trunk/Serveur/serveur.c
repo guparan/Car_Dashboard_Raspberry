@@ -42,7 +42,7 @@ void *thread_runtime (void * arg)
 	*/
 	int tailleTrameCanLue_int = 0;	
 	int tailleTrameSerieLue_int = 0;
-	int lectureTrameFaite = 0;
+	int lectureTramesFaite = 0;
 	
 	printf("thread cree\n");
 
@@ -56,7 +56,7 @@ void *thread_runtime (void * arg)
 
     while ( keepRunning )
     {
-		lectureTrameFaite = 0;
+		lectureTramesFaite = 0;
 		
         for(i=0 ; i<CLIENT_MAX ; i++)
         {
@@ -69,6 +69,9 @@ void *thread_runtime (void * arg)
 			
 			if(!lectureTramesFaite) // On ne fait la lecture que si on a au moins 1 client
 			{
+				fflush(fdCan);
+				fflush(fdSerie);
+			
 				// LECTURE TRAME CAN
 				tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
 				if( tailleTrameCanLue_int == 0 )
@@ -85,7 +88,7 @@ void *thread_runtime (void * arg)
 				}
 				convertIntToChar(tailleTrameSerieLue_int, tailleTrameSerieLue_char, TAILLE_INFO_TRAME);	
 
-				lectureTrameFaite = 1;				
+				lectureTramesFaite = 1;				
 			}
 			
             printf("tentative decriture sur le client %d \n", i);
