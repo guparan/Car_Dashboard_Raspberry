@@ -170,10 +170,11 @@ int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
     //snprintf("%s\n", sizeofbuffer, buffer);
 	
 	fprintf(fptr, "%d;", static_ligne);
-	for(i=0 ; i<TAILLE_TRAME ; i++)
+	for(i=0 ; i<TAILLE_TRAME-1 ; i++)
 	{
-		fprintf(fptr, "%c", buffer[i]);
+		fprintf(fptr, "%c;", buffer[i]);
 	}
+	fprintf(fptr, "%c", buffer[i]);
 	fprintf(fptr, "\n");
 	
 	static_ligne++;
@@ -197,10 +198,11 @@ int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan)
 	*/
 	
 	fprintf(fptr, "%d;", static_ligne);
-	for(i=0 ; i<TAILLE_TRAME_CAN ; i++)
+	for(i=0 ; i<TAILLE_TRAME_CAN-1 ; i++)
 	{
-		fprintf(fptr, "%c", bufferCan[i]);
+		fprintf(fptr, "%c;", bufferCan[i]);
 	}
+	fprintf(fptr, "%c", bufferCan[i]);
 	fprintf(fptr, "\n");
 	
 	static_ligne++;
