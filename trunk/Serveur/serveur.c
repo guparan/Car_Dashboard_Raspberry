@@ -16,7 +16,7 @@ void intHandler(int sig)
 void *thread_runtime (void * arg)
 {
     int * clients=(int *)arg;
-	
+
 	int tailleTrameClient = TAILLE_INFO_TRAME + TAILLE_INFO_TRAME_CAN + TAILLE_TRAME + TAILLE_TRAME_CAN;
 	char* trameClient = (char*)malloc(tailleTrameClient);
 	char* tailleTrameSerieLue_char = trameClient;
@@ -28,10 +28,10 @@ void *thread_runtime (void * arg)
 
     int fdSerie;
 	int fdCan;
-	
+
     int i;
     int ecrits=0;
-	
+
 	// TESTS
 	/*
 	int tailleTrameCanLue_int = 8;
@@ -40,24 +40,24 @@ void *thread_runtime (void * arg)
 		bufferCan[i] = (char)i+70;
 	}
 	*/
-	int tailleTrameCanLue_int = 0;	
+	int tailleTrameCanLue_int = 0;
 	int tailleTrameSerieLue_int = 0;
 	int lectureTramesFaite = 0;
-	
+
 	printf("thread cree\n");
 
 	FILE* logSerie = fopen("data.csv", "w");
 	FILE* logCan = fopen("dataCAN.csv", "w");
-	
+
 	fdSerie = initLiaisonSerie();
 	fdCan = initLiaisonCan();
-	
+
     printf("keepRunning %d\n", keepRunning);
 
     while ( keepRunning )
     {
 		lectureTramesFaite = 0;
-		
+
         for(i=0 ; i<CLIENT_MAX ; i++)
         {
             //printf("check client %d\n", i);
@@ -66,12 +66,13 @@ void *thread_runtime (void * arg)
                 //printf("Pas de client a %d\n", i);
                 continue;
             }
-			
+
 			if(!lectureTramesFaite) // On ne fait la lecture que si on a au moins 1 client
 			{
-				fflush(fdCan);
-				fflush(fdSerie);
-			
+				//fflush(fdCan);
+				//fflush(fdSerie);
+				tcflush(fdSerie,TCIFLUSH);
+
 				// LECTURE TRAME CAN
 				tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
 				if( tailleTrameCanLue_int == 0 )
@@ -79,18 +80,18 @@ void *thread_runtime (void * arg)
 					// error
 				}
 				convertIntToChar(tailleTrameCanLue_int, tailleTrameCanLue_char, TAILLE_INFO_TRAME_CAN);
-				
+
 				// LECTURE TRAME SERIE
 				tailleTrameSerieLue_int = lectureTrame(fdSerie, buffer, TAILLE_TRAME);
 				if( tailleTrameSerieLue_int == 0 )
 				{
 					// error
 				}
-				convertIntToChar(tailleTrameSerieLue_int, tailleTrameSerieLue_char, TAILLE_INFO_TRAME);	
+				convertIntToChar(tailleTrameSerieLue_int, tailleTrameSerieLue_char, TAILLE_INFO_TRAME);
 
-				lectureTramesFaite = 1;				
+				lectureTramesFaite = 1;
 			}
-			
+
             printf("tentative decriture sur le client %d \n", i);
             ecrits = write(clients[i], trameClient, tailleTrameClient);
             printf("code de retour du write : %d \n", ecrits);
@@ -121,8 +122,8 @@ void *thread_runtime (void * arg)
 					else printf("%d", trameClient[i]);
 				}
 				printf("(%d octets)\n", ecrits);
-				
-				if( saveTrameCan(logCan, bufferCan, TAILLE_TRAME_CAN) ) printf("la sauvegarde CAN a bien ete faite \n");				
+
+				if( saveTrameCan(logCan, bufferCan, TAILLE_TRAME_CAN) ) printf("la sauvegarde CAN a bien ete faite \n");
 				if( saveTrame(logSerie, buffer, TAILLE_TRAME) ) printf("la sauvegarde SERIE a bien ete faite \n");
 			}
 		}
@@ -137,10 +138,10 @@ void *thread_runtime (void * arg)
             clients[i] = -1;
         }
     }
-    
+
 	close(fdSerie);
     close(fdCan);
-	
+
     printf("fin du thread\n");
     return 0;
 }
