@@ -1,4 +1,5 @@
 #include "functions.h"
+#include <sys/socket.h>
 
 
 int initLiaisonSerie()
@@ -12,7 +13,7 @@ int initLiaisonSerie()
 		printf("error on open");
 		exit(-1);
 	}
-	
+
 	setvbuf(file, NULL, _IOFBF, TAILLE_TRAME);
 	fdSerie = fileno(file);
 
@@ -31,7 +32,7 @@ int initLiaisonSerie()
 	termios_p.c_cc[VTIME] = 0;
 	/* Sauvegarde des nouveaux parametres */
 	tcsetattr(fdSerie,TCSANOW,&termios_p);
-	
+
 	return fdSerie;
 }
 
@@ -49,8 +50,8 @@ int initLiaisonCan()
 		perror("Error while opening socket");
 		return -1;
 	}
-	
-	if ( setsockopt(fdCan, SOL_SOCKET, SO_RCVBUF, &n, sizeof(n)) == -1 ) 
+
+	if ( setsockopt(fdCan, SOL_SOCKET, SO_RCVBUF, &n, sizeof(n)) == -1 )
 	{
 		return -1;
 	}
@@ -71,7 +72,7 @@ int initLiaisonCan()
 		return -2;
 	}
 	printf("socket attache avec succes\n");
-	
+
 	return fdCan;
 }
 
@@ -82,8 +83,8 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
 	int totalLus = 0;
     char data;
     int lecture = 0;
-	
-	
+
+
 
     while( totalLus < tailleBuffer )
     {
@@ -158,20 +159,20 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 
 			return totalLus;
 		}
-	}	
-	
+	}
+
 	return 0; // never reached
 }
 
 
 int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
 {
-	static int static_ligne = 0;	
+	static int static_ligne = 0;
     int i;
-	
+
 	// TODO try this
     //snprintf("%s\n", sizeofbuffer, buffer);
-	
+
 	fprintf(fptr, "%d;", static_ligne);
 	for(i=0 ; i<TAILLE_TRAME ; i++)
 	{
@@ -179,7 +180,7 @@ int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
 		else fprintf(fptr, "%c", buffer[i]);
 	}
 	fprintf(fptr, "\n");
-	
+
 	static_ligne++;
 
 	return 1;
@@ -193,13 +194,13 @@ int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan)
 
 	printf("Je suis dans la fonction save tramecan\n");
 	printf("%d, %d, %d, %d, %d, %d, %d, %d\n", *bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7));
-	
+
 	/*
-	fprintf( fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", static_ligne, 
+	fprintf( fptr, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", static_ligne,
 		*bufferCan, *(bufferCan+1), *(bufferCan+2), *(bufferCan+3), *(bufferCan+4), *(bufferCan+5), *(bufferCan+6), *(bufferCan+7)
 	);
 	*/
-	
+
 	fprintf(fptr, "%d;", static_ligne);
 	for(i=0 ; i<TAILLE_TRAME_CAN-1 ; i++)
 	{
@@ -207,7 +208,7 @@ int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan)
 	}
 	fprintf(fptr, "%d", bufferCan[i]);
 	fprintf(fptr, "\n");
-	
+
 	static_ligne++;
 
 	return 1;
@@ -229,7 +230,7 @@ void convertIntToChar(int value, char* result, int resultSize)
 	char* buffer;
 	int digits = 0;
 	int i, j;
-	
+
 	printf("conversion du nombre %d : ", value);
 
 	digits = numberOfEncodingDigits(value);
@@ -251,7 +252,7 @@ void convertIntToChar(int value, char* result, int resultSize)
 		}
 		printf("%c", result[i]);
 	}
-	
+
 	printf("\n");
 
 	free(buffer);
