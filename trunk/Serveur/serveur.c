@@ -1,5 +1,8 @@
 // Fonctions
 #include "functions.h"
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <sys/socket.h>
 
 
 static int keepRunning = 1;
@@ -51,6 +54,7 @@ void *thread_runtime (void * arg)
 
 	fdSerie = initLiaisonSerie();
 	fdCan = initLiaisonCan();
+	int flag = 0;
 
     printf("keepRunning %d\n", keepRunning);
 
@@ -73,6 +77,11 @@ void *thread_runtime (void * arg)
 				//fflush(fdSerie);
 				tcflush(fdSerie,TCIFLUSH);
 
+
+				setsockopt(fdCan, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
+				//tcflush(fdCan,TCIOFLUSH);
+
+
 				// LECTURE TRAME CAN
 				tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
 				if( tailleTrameCanLue_int == 0 )
@@ -80,6 +89,9 @@ void *thread_runtime (void * arg)
 					// error
 				}
 				convertIntToChar(tailleTrameCanLue_int, tailleTrameCanLue_char, TAILLE_INFO_TRAME_CAN);
+
+                tcflush(fdSerie,TCIFLUSH);
+                tcflush(fdCan,TCIFLUSH);
 
 				// LECTURE TRAME SERIE
 				tailleTrameSerieLue_int = lectureTrame(fdSerie, buffer, TAILLE_TRAME);
