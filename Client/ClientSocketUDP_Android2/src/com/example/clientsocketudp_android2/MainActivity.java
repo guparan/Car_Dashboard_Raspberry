@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import android.R.string;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
@@ -28,7 +29,12 @@ public class MainActivity extends Activity {
     DataInputStream input;
     BufferedReader in;
     //String message_distant;
-    char[] message_distant = new char[10];
+    char[] message_distant = new char[1024];
+    int tailleTrameSerie;
+    int tailleTrameCan;
+    String trameSerie;
+    String trameCan;
+    
     
 
     @Override
@@ -99,12 +105,23 @@ public class MainActivity extends Activity {
     		while(true)
     		{
 		        try {
-					int nblus = in.read(message_distant, 0, 10);
-	                textPerformance.setText( String.valueOf(message_distant) );
+					int nblus = in.read(message_distant, 0, 1024);
+	              //  textPerformance.setText( String.valueOf(message_distant) );
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}		            
+		        
+
+		        
+		        tailleTrameSerie = Integer.parseInt(String.copyValueOf(message_distant, 0, 3));
+		        tailleTrameCan = Integer.parseInt(String.copyValueOf(message_distant, 3, 1));
+		        trameSerie = String.copyValueOf(message_distant, 4, tailleTrameSerie);
+		       // trameCan = String.copyValueOf(message_distant, 4+tailleTrameSerie, tailleTrameCan);
+		        trameCan = asciiValuesOf(message_distant, 4+tailleTrameSerie, tailleTrameCan);
+		 
+		        textPerformance.setText(trameSerie+trameCan);
+		        
 		        
                // int bytesRead;
                // while ((bytesRead = inputStream.read(buffer)) != -1){
@@ -112,7 +129,7 @@ public class MainActivity extends Activity {
                 //}   
                 
                 // TODO gérer le close
-                //socket.close();                
+                //socket.close();                ,
 		        //in.close();
 
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(1024);               
@@ -125,6 +142,19 @@ public class MainActivity extends Activity {
 				}
     		}
         }
+        
+        String asciiValuesOf(char[] text, int start, int length)
+        {
+			 String asciiValues = new String();
+			 
+			 for(int i=start ; i<start+length ; i++)
+			 {
+				 asciiValues = asciiValues.concat( String.valueOf((int)text[i]) );
+			 }
+				
+			 return asciiValues;
+        }
+        
         
 
         @Override
