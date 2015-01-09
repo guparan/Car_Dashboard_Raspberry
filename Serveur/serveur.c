@@ -73,14 +73,9 @@ void *thread_runtime (void * arg)
 
 			if(!lectureTramesFaite) // On ne fait la lecture que si on a au moins 1 client
 			{
-				//fflush(fdCan);
-				//fflush(fdSerie);
 				tcflush(fdSerie,TCIFLUSH);
-
-
-				setsockopt(fdCan, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
 				//tcflush(fdCan,TCIOFLUSH);
-
+				//setsockopt(fdCan, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
 
 				// LECTURE TRAME CAN
 				tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
@@ -91,7 +86,7 @@ void *thread_runtime (void * arg)
 				convertIntToChar(tailleTrameCanLue_int, tailleTrameCanLue_char, TAILLE_INFO_TRAME_CAN);
 
                 tcflush(fdSerie,TCIFLUSH);
-                tcflush(fdCan,TCIFLUSH);
+                //tcflush(fdCan,TCIFLUSH);
 
 				// LECTURE TRAME SERIE
 				tailleTrameSerieLue_int = lectureTrame(fdSerie, buffer, TAILLE_TRAME);

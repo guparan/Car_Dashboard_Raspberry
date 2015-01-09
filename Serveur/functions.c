@@ -14,7 +14,7 @@ int initLiaisonSerie()
 		exit(-1);
 	}
 
-	setvbuf(file, NULL, _IOFBF, TAILLE_TRAME);
+	//setvbuf(file, NULL, _IOFBF, TAILLE_TRAME);
 	fdSerie = fileno(file);
 
 	/* Lecture des parametres courants */
@@ -50,12 +50,12 @@ int initLiaisonCan()
 		perror("Error while opening socket");
 		return -1;
 	}
-
+/*
 	if ( setsockopt(fdCan, SOL_SOCKET, SO_RCVBUF, &n, sizeof(n)) == -1 )
 	{
 		return -1;
 	}
-
+*/
 	printf("socket canbus cree avec sucees\n");
 
 	strcpy(ifr.ifr_name, ifname);
