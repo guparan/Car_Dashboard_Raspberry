@@ -1,5 +1,7 @@
 #include "functions.h"
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 
 
 int initLiaisonSerie()
@@ -44,6 +46,8 @@ int initLiaisonCan()
 	char *ifname = "can0";
 	struct sockaddr_can addr;
 	int n = TAILLE_TRAME_CAN;
+	//int n =1;
+	int flag = 0;
 
 	if((fdCan = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
 	{
@@ -55,7 +59,8 @@ int initLiaisonCan()
 	{
 		return -1;
 	}
-*/
+	//setsockopt(fdCan, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
+
 	printf("socket canbus cree avec sucees\n");
 
 	strcpy(ifr.ifr_name, ifname);
@@ -72,6 +77,7 @@ int initLiaisonCan()
 		return -2;
 	}
 	printf("socket attache avec succes\n");
+	shutdown(fdCan, SHUT_RDWR);
 
 	return fdCan;
 }
@@ -133,6 +139,10 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 	{
 		//Read a message back from the CAN bus
 		nbytes = read( fdCan, &frame, sizeof(struct can_frame));
+
+
+
+
 		if(nbytes == 0)
 		{
 			// error
@@ -157,8 +167,10 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 				totalLus++;
 			}
 
+
 			return totalLus;
 		}
+
 	}
 
 	return 0; // never reached
