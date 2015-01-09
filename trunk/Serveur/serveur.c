@@ -30,20 +30,19 @@ void *thread_runtime (void * arg)
     //char* bufferTest="Testbuffer";
 
     int fdSerie;
-	int fdCan;
+	//int fdCan;
 
     int i;
     int ecrits=0;
 
 	// TESTS
-	/*
 	int tailleTrameCanLue_int = 8;
 	for(i=0 ; i<8 ; i++)
 	{
 		bufferCan[i] = (char)i+70;
 	}
-	*/
-	int tailleTrameCanLue_int = 0;
+	
+	//int tailleTrameCanLue_int = 0;
 	int tailleTrameSerieLue_int = 0;
 	int lectureTramesFaite = 0;
 
@@ -53,8 +52,7 @@ void *thread_runtime (void * arg)
 	FILE* logCan = fopen("dataCAN.csv", "w");
 
 	fdSerie = initLiaisonSerie();
-	fdCan = initLiaisonCan();
-	//int flag = 0;
+	//fdCan = initLiaisonCan();
 
     printf("keepRunning %d\n", keepRunning);
 
@@ -73,20 +71,15 @@ void *thread_runtime (void * arg)
 
 			if(!lectureTramesFaite) // On ne fait la lecture que si on a au moins 1 client
 			{
-
-				//tcflush(fdSerie,TCIFLUSH);
-				//tcflush(fdCan,TCIOFLUSH);
-				//setsockopt(fdCan, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
-
 				// LECTURE TRAME CAN
+				/*
 				tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
 				if( tailleTrameCanLue_int == 0 )
 				{
 					// error
 				}
+				*/
 				convertIntToChar(tailleTrameCanLue_int, tailleTrameCanLue_char, TAILLE_INFO_TRAME_CAN);
-
-                //tcflush(fdCan,TCIFLUSH);
 				
 				// LECTURE TRAME SERIE
 				tailleTrameSerieLue_int = lectureTrame(fdSerie, buffer, TAILLE_TRAME);
@@ -147,7 +140,7 @@ void *thread_runtime (void * arg)
     }
 
 	close(fdSerie);
-    close(fdCan);
+    //close(fdCan);
 
     printf("fin du thread\n");
     return 0;
