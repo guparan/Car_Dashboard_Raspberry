@@ -60,7 +60,7 @@ int initLiaisonCan()
 		return -1;
 	}
 	//setsockopt(fdCan, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
-
+*/
 	printf("socket canbus cree avec sucees\n");
 
 	strcpy(ifr.ifr_name, ifname);
@@ -77,7 +77,7 @@ int initLiaisonCan()
 		return -2;
 	}
 	printf("socket attache avec succes\n");
-	shutdown(fdCan, SHUT_RDWR);
+	//shutdown(fdCan, SHUT_RDWR);
 
 	return fdCan;
 }
@@ -89,8 +89,8 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
 	int totalLus = 0;
     char data;
     int lecture = 0;
-
-
+	
+	tcflush(liaisonSerie, TCIFLUSH);
 
     while( totalLus < tailleBuffer )
     {
@@ -140,9 +140,6 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 		//Read a message back from the CAN bus
 		nbytes = read( fdCan, &frame, sizeof(struct can_frame));
 
-
-
-
 		if(nbytes == 0)
 		{
 			// error
@@ -166,11 +163,9 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 				printf("%d\n", buffer[i]);
 				totalLus++;
 			}
-
-
+			
 			return totalLus;
 		}
-
 	}
 
 	return 0; // never reached
