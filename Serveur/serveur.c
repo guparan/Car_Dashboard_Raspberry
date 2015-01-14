@@ -183,7 +183,7 @@ int main()
     }
 
     // Crée un socket de communication
-    socketServeur = socket(PF_INET, SOCK_STREAM, 0);//protocole par défaut
+    socketServeur = socket(PF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);//protocole par défaut
     if(socketServeur == -1)
     {
         perror("Socket");
@@ -225,9 +225,9 @@ int main()
         {
 			printf("ERROR ON ACCEPT\n");
             perror("accept");
-            close(socketClient);
-            close(socketServeur);
-            exit(errno);
+            //close(socketClient);
+            //close(socketServeur);
+            //exit(errno);
         }
 
         printf("Nouveau client !\n");
