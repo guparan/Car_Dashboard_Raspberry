@@ -45,9 +45,8 @@ int initLiaisonCan()
     struct ifreq ifr;
 	char *ifname = "can0";
 	struct sockaddr_can addr;
-	int n = TAILLE_TRAME_CAN;
-	//int n =1;
-	int flag = 0;
+	//int n = TAILLE_TRAME_CAN;
+	//int flag = 0;
 
 	if((fdCan = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
 	{
@@ -91,7 +90,7 @@ ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
     int lecture = 0;
 	
 	// On vide le buffer de lecture pour effacer les anciennes trames lues
-	tcfnbLush(liaisonSerie, TCIFLUSH);
+	tcflush(liaisonSerie, TCIFLUSH);
 
     while( totalLus < tailleBuffer )
     {
