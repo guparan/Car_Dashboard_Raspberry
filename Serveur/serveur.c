@@ -20,7 +20,7 @@ void intHandler(int sig)
 		keepRunning = 0;
 		if(c == 'F') exit(sig);
 	}
-	else signal(SIGINT, intHandler);
+	signal(SIGINT, intHandler);
 }
 
 
@@ -167,7 +167,7 @@ int main()
     char nomDuClient[1024], portDuClient[32];
 
     // Gestion du signal d'interuption Ctrl+C
-	signal(SIGINT, SIG_IGN);
+	//signal(SIGINT, SIG_IGN);
     signal(SIGINT, intHandler);
 	
 	// Gestion du signal SIGPIPE envoye par une socket Client : on l'ignore
@@ -216,7 +216,7 @@ int main()
 
 	printf("Attente d'une demande de connexion (quitter avec Cltrl-C)\n\n");
 		
-    while(keepRunning)
+    while(1)
     {
         socketClient = accept(socketServeur, (struct sockaddr *)&addrServeur, &longueurAdresse);
 		
