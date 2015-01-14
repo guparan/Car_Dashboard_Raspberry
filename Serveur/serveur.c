@@ -6,7 +6,6 @@
 
 
 static int keepRunning = 1;
-static int forceExit = 0;
 
 
 void intHandler(int sig)
@@ -184,7 +183,8 @@ int main()
     }
 
     // Crée un socket de communication
-    socketServeur = socket(PF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);//protocole par défaut
+    //socketServeur = socket(PF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
+	socketServeur = socket(PF_INET, SOCK_STREAM, 0);
     if(socketServeur == -1)
     {
         perror("Socket");
@@ -225,18 +225,10 @@ int main()
 		
         if(socketClient == -1 )
 		{
-			if(errno == EAGAIN || errno == EWOULDBLOCK) // Aucun nouveau client
-			{
-				continue;
-			}
-			else
-			{
-				printf("ERROR ON ACCEPT\n");
-				perror("accept");
-				//close(socketClient);
-				//close(socketServeur);
-				//exit(errno);
-			}			
+			perror("accept");
+			close(socketClient);
+			close(socketServeur);
+			exit(errno);		
         }
 		
 		printf("Nouveau client !\n");
