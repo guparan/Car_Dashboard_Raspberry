@@ -193,6 +193,14 @@ int main()
     addrServeur.sin_addr.s_addr = INADDR_ANY; //toutes
     addrServeur.sin_family = PF_INET;
     addrServeur.sin_port = htons(PORT);
+	
+	// lose the pesky "Address already in use" error message
+	int yes = 1;
+	if( setsockopt(socketServeur, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1 ) 
+	{
+		perror("setsockopt");
+		exit(errno);
+	}
 
     // Demande l'attachement local de la socket
     longueurAdresse = sizeof(addrServeur);
