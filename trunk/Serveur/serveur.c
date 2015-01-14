@@ -15,13 +15,10 @@ void intHandler(int sig)
 	signal(sig, SIG_IGN);
 	printf("Do you really want to quit? [y/n/F] ");
 	c = getchar();
-	if (c == 'y' || c == 'Y')
+	if (c == 'y' || c == 'Y' || c == 'F')
 	{
 		keepRunning = 0;
-	}
-	if(c=='F')
-	{
-		exit(sig);
+		if(c == 'F') exit(sig);
 	}
 	else signal(SIGINT, intHandler);
 }
