@@ -22,8 +22,7 @@ void intHandler(int sig)
 	}
 	if(c=='F')
 	{
-		keepRunning = 0;
-		forceExit = 1;
+		exit(sig);
 	}
 	else signal(SIGINT, intHandler);
 }
@@ -268,11 +267,6 @@ int main()
 	printf("CLEANING ...\n");
 
     // Attente de la fin du thread
-	if(forceExit)
-	{
-		pthread_cancel(thread);
-	}
-
 	if(pthread_join(thread, NULL) != 0)
 	{
 		perror("pthread_join");
