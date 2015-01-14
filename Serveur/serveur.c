@@ -18,10 +18,15 @@ void intHandler(int sig)
 
 void *thread_runtime (void * arg)
 {
-    int * clients=(int *)arg;
+    int * clients=(int *)arg; // On precise la nature de la variable arg
 
 	int tailleTrameClient = TAILLE_INFO_TRAME + TAILLE_INFO_TRAME_CAN + TAILLE_TRAME + TAILLE_TRAME_CAN;
-	char* trameClient = (char*)malloc(tailleTrameClient);
+	
+	// Declaration et allocation de la trame client
+	char trameClient[TAILLE_INFO_TRAME + TAILLE_INFO_TRAME_CAN + TAILLE_TRAME + TAILLE_TRAME_CAN];
+	//char* trameClient = (char*)malloc(tailleTrameClient);
+	
+	// Placement des pointeurs vers les differentes parties de la trame client
 	char* tailleTrameSerieLue_char = trameClient;
 	char* tailleTrameCanLue_char = tailleTrameSerieLue_char + TAILLE_INFO_TRAME;
 	char* buffer = tailleTrameCanLue_char + TAILLE_INFO_TRAME_CAN;
@@ -30,29 +35,32 @@ void *thread_runtime (void * arg)
     //char* bufferTest="Testbuffer";
 
     int fdSerie;
-	//int fdCan;
+	int fdCan;
 
     int i;
     int ecrits=0;
 
+	/*
 	// TESTS
 	int tailleTrameCanLue_int = 8;
 	for(i=0 ; i<8 ; i++)
 	{
 		bufferCan[i] = (char)i+70;
 	}
+	*/
 	
-	//int tailleTrameCanLue_int = 0;
+	int tailleTrameCanLue_int = 0;
 	int tailleTrameSerieLue_int = 0;
 	int lectureTramesFaite = 0;
 
 	printf("thread cree\n");
 
+	// Ouverture des fichiers de sauvgegarde
 	FILE* logSerie = fopen("data.csv", "w");
 	FILE* logCan = fopen("dataCAN.csv", "w");
 
 	fdSerie = initLiaisonSerie();
-	//fdCan = initLiaisonCan();
+	fdCan = initLiaisonCan();
 
     printf("keepRunning %d\n", keepRunning);
 
@@ -66,19 +74,19 @@ void *thread_runtime (void * arg)
             if(clients[i]==-1)
             {
                 //printf("Pas de client a %d\n", i);
-                continue;
+                continue; // on passe au client suivant
             }
 
-			if(!lectureTramesFaite) // On ne fait la lecture que si on a au moins 1 client
+			// On ne fait la lecture que si on a au moins 1 client
+			// Si il ya plusieurs clients dans le tableau, la lecture des trames n'est faite qu'une fois
+			if(!lectureTramesFaite) 
 			{
 				// LECTURE TRAME CAN
-				/*
 				tailleTrameCanLue_int = lectureTrameCan(fdCan, bufferCan, TAILLE_TRAME_CAN);
 				if( tailleTrameCanLue_int == 0 )
 				{
 					// error
 				}
-				*/
 				convertIntToChar(tailleTrameCanLue_int, tailleTrameCanLue_char, TAILLE_INFO_TRAME_CAN);
 				
 				// LECTURE TRAME SERIE
@@ -113,7 +121,7 @@ void *thread_runtime (void * arg)
 					exit(errno);
 				}
             }
-			else
+			else // Si le write s'est bien passe
 			{
 				printf("Trame envoyee au client : ");
 				for(i=0 ; i < tailleTrameClient ; i++)
@@ -121,6 +129,7 @@ void *thread_runtime (void * arg)
 					if(i < TAILLE_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_INFO_TRAME) printf("%c", trameClient[i]);
 					else printf("%d", trameClient[i]);
 				}
+				
 				printf("(%d octets)\n", ecrits);
 
 				if( saveTrameCan(logCan, bufferCan, TAILLE_TRAME_CAN) ) printf("la sauvegarde CAN a bien ete faite \n");
@@ -140,7 +149,9 @@ void *thread_runtime (void * arg)
     }
 
 	close(fdSerie);
-    //close(fdCan);
+    close(fdCan);
+	
+	//free(trameClient);
 
     printf("fin du thread\n");
     return 0;
@@ -156,12 +167,15 @@ int main()
     int i;
     int clients[CLIENT_MAX];
     struct sockaddr_in addrServeur;
-    socklen_t longueurAdresse;
-    char hbuf[1024], sbuf[32];
+    socklen_t longueurAdresse; // Nombre d'octets de la structure sockaddr_in
+    char nomDuClient[1024], portDuClient[32];
 
     // Gestion du signal d'interuption Ctrl+C
     signal(SIGINT, intHandler);
+	
+	// Gestion du signal SIGPIPE envoye par une socket Client : on l'ignore
     signal(SIGPIPE, SIG_IGN);
+	
     // Initialisation du tableau des clients
     for(i=0 ; i<CLIENT_MAX ; i++)
     {
@@ -206,7 +220,8 @@ int main()
     {
         printf("Attente d'une demande de connexion (quitter avec Cltrl-C)\n\n");
 
-        socketClient = accept(socketServeur, (struct sockaddr *)&addrServeur, &longueurAdresse);
+        socketClient = accept(socketServeur, (struct sockaddr *)&addrServeur, &longueurAdresse); // appel bloquant
+		
         if(socketClient == -1 )
         {
             perror("accept");
@@ -233,17 +248,19 @@ int main()
             close(socketClient);
         }
 
-        if ( getnameinfo((struct sockaddr*)&addrServeur, sizeof(addrServeur), hbuf, sizeof(hbuf), sbuf,
-                       sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV) == 0)
+        if ( getnameinfo((struct sockaddr*)&addrServeur, sizeof(addrServeur), nomDuClient, sizeof(nomDuClient), portDuClient,
+                       sizeof(portDuClient), NI_NUMERICHOST | NI_NUMERICSERV) == 0)
         {
-               printf("client=%s, port=%s\n", hbuf, sbuf);
+               printf("client=%s, port=%s\n", nomDuClient, portDuClient);
         }
         else
         {
             printf("Marche pas\n");
-            //printf("host=%s, serv=%s\n", hbuf, sbuf);
+            //printf("host=%s, serv=%s\n", nomDuClient, portDuClient);
         }
     }
+	
+	// Attention : ce code n'est jamais atteint
     // Attente de la fin du thread
     if(pthread_join(thread, NULL) !=0)
     {
@@ -259,5 +276,6 @@ int main()
         }
     }
     close(socketServeur);
+	
     return 0;
 }
