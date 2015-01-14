@@ -6,6 +6,7 @@
 
 
 static int keepRunning = 1;
+static int forceExit = 0;
 
 
 void intHandler(int sig)
@@ -13,11 +14,16 @@ void intHandler(int sig)
 	char  c;
 
 	signal(sig, SIG_IGN);
-	printf("Do you really want to quit? [y/n] ");
+	printf("Do you really want to quit? [y/n/F] ");
 	c = getchar();
 	if (c == 'y' || c == 'Y')
 	{
 		keepRunning = 0;
+	}
+	if(c=='F')
+	{
+		keepRunning = 0;
+		forceExit = 1;
 	}
 	else signal(SIGINT, intHandler);
 }
@@ -145,19 +151,8 @@ void *thread_runtime (void * arg)
     }
 
     // Ce code est atteint si keepRunning == 0
-	/*
-    for(idClient=0 ; idClient<CLIENT_MAX ; idClient++)
-    {
-        if(clients[idClient] != -1)
-        {
-            close(clients[idClient]);
-            clients[idClient] = -1;
-        }
-    }
-	*/
-
-	close(fdSerie);
-    close(fdCan);
+	close(fdSerie); // Fermeture de la liaison Serie
+    close(fdCan); // Fermeture de la liaison CAN
 	
     printf("fin du thread\n");
     return 0;
@@ -223,23 +218,26 @@ int main()
     pthread_create(&thread, NULL, thread_runtime, clients);
     printf("creation du thread\n");
 
+	printf("Attente d'une demande de connexion (quitter avec Cltrl-C)\n\n");
+		
     while(keepRunning)
     {
-        printf("Attente d'une demande de connexion (quitter avec Cltrl-C)\n\n");
-
         socketClient = accept(socketServeur, (struct sockaddr *)&addrServeur, &longueurAdresse);
-		if(errno == EAGAIN || errno == EWOULDBLOCK) // Aucun nouveau client
-		{
-			continue;
-		}
 		
         if(socketClient == -1 )
-        {
-			printf("ERROR ON ACCEPT\n");
-            perror("accept");
-            //close(socketClient);
-            //close(socketServeur);
-            //exit(errno);
+		{
+			if(errno == EAGAIN || errno == EWOULDBLOCK) // Aucun nouveau client
+			{
+				continue;
+			}
+			else
+			{
+				printf("ERROR ON ACCEPT\n");
+				perror("accept");
+				//close(socketClient);
+				//close(socketServeur);
+				//exit(errno);
+			}			
         }
 		
 		printf("Nouveau client !\n");
@@ -267,18 +265,21 @@ int main()
 		}
     }
 	
-	// Attention : ce code n'est jamais atteint
-    // Attente de la fin du thread
 	printf("CLEANING ...\n");
 
-/*	
-    if(pthread_join(thread, NULL) != 0)
-    {
-        perror("pthread_join");
-        exit(errno);
-    }
-*/
+    // Attente de la fin du thread
+	if(forceExit)
+	{
+		pthread_cancel(thread);
+	}
+
+	if(pthread_join(thread, NULL) != 0)
+	{
+		perror("pthread_join");
+		exit(errno);
+	}
 	
+	// Deconnexion des clients
     for(i=0 ; i<CLIENT_MAX ; i++)
     {
         if(clients[i] != -1)
@@ -287,6 +288,8 @@ int main()
             clients[i] = -1;
         }
     }
+	
+	// Fermeture de la socket serveur
     close(socketServeur);
 	
     return 0;
