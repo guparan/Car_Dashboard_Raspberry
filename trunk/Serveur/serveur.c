@@ -37,7 +37,7 @@ void *thread_runtime (void * arg)
     int fdSerie;
 	int fdCan;
 
-    int i;
+    int i, idClient;
     int ecrits=0;
 
 	/*
@@ -68,12 +68,12 @@ void *thread_runtime (void * arg)
     {
 		lectureTramesFaite = 0;
 
-        for(i=0 ; i<CLIENT_MAX ; i++)
+        for(idClient=0 ; idClient < CLIENT_MAX ; idClient++)
         {
-            //printf("check client %d\n", i);
-            if(clients[i]==-1)
+            //printf("check client %d\n", idClient);
+            if(clients[idClient]==-1)
             {
-                //printf("Pas de client a %d\n", i);
+                //printf("Pas de client a %d\n", idClient);
                 continue; // on passe au client suivant
             }
 
@@ -100,8 +100,8 @@ void *thread_runtime (void * arg)
 				lectureTramesFaite = 1;
 			}
 
-            printf("tentative decriture sur le client %d \n", i);
-            ecrits = write(clients[i], trameClient, tailleTrameClient);
+            printf("tentative decriture sur le client %d \n", idClient);
+            ecrits = write(clients[idClient], trameClient, tailleTrameClient);
             printf("code de retour du write : %d \n", ecrits);
 
             if(ecrits == -1)
@@ -112,8 +112,8 @@ void *thread_runtime (void * arg)
                 if(errno == EPIPE || errno == ECONNRESET)
                 {
                     printf("deconnexion client\n");
-                    close(clients[i]);
-                    clients[i]=-1;
+                    close(clients[idClient]);
+                    clients[idClient]=-1;
                 }
 				else
 				{
@@ -123,7 +123,7 @@ void *thread_runtime (void * arg)
             }
 			else // Si le write s'est bien passe
 			{
-				printf("Trame envoyee au client : ");
+				printf("Trame envoyee au client %d : ", idClient);
 				for(i=0 ; i < tailleTrameClient ; i++)
 				{
 					if(i < TAILLE_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_INFO_TRAME) printf("%c", trameClient[i]);
@@ -139,12 +139,12 @@ void *thread_runtime (void * arg)
     }
 
     // Ce code est atteint si keepRunning == 0
-    for(i=0 ; i<CLIENT_MAX ; i++)
+    for(idClient=0 ; idClient<CLIENT_MAX ; idClient++)
     {
-        if(clients[i] != -1)
+        if(clients[idClient] != -1)
         {
-            close(clients[i]);
-            clients[i] = -1;
+            close(clients[idClient]);
+            clients[idClient] = -1;
         }
     }
 
@@ -216,14 +216,14 @@ int main()
     pthread_create(&thread, NULL, thread_runtime, clients);
     printf("creation du thread\n");
 
-    while(1)
+    while(keepRunning)
     {
         printf("Attente d'une demande de connexion (quitter avec Cltrl-C)\n\n");
 
         socketClient = accept(socketServeur, (struct sockaddr *)&addrServeur, &longueurAdresse); // appel bloquant
-		
         if(socketClient == -1 )
         {
+			printf("ERROR ON ACCEPT\n");
             perror("accept");
             close(socketClient);
             close(socketServeur);
@@ -262,6 +262,8 @@ int main()
 	
 	// Attention : ce code n'est jamais atteint
     // Attente de la fin du thread
+	printf("CLEANING ...\n");
+	
     if(pthread_join(thread, NULL) !=0)
     {
         perror("pthread_join");
