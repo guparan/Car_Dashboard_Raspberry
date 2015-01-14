@@ -17,8 +17,7 @@ void intHandler(int sig)
 	c = getchar();
 	if (c == 'y' || c == 'Y')
 	{
-		keepRunning=0;
-		exit(sig);
+		keepRunning = 0;
 	}
 	else signal(SIGINT, intHandler);
 }
@@ -32,7 +31,6 @@ void *thread_runtime (void * arg)
 	
 	// Declaration et allocation de la trame client
 	char trameClient[TAILLE_INFO_TRAME + TAILLE_INFO_TRAME_CAN + TAILLE_TRAME + TAILLE_TRAME_CAN];
-	//char* trameClient = (char*)malloc(tailleTrameClient);
 	
 	// Placement des pointeurs vers les differentes parties de la trame client
 	char* tailleTrameSerieLue_char = trameClient;
@@ -147,6 +145,7 @@ void *thread_runtime (void * arg)
     }
 
     // Ce code est atteint si keepRunning == 0
+	/*
     for(idClient=0 ; idClient<CLIENT_MAX ; idClient++)
     {
         if(clients[idClient] != -1)
@@ -155,12 +154,11 @@ void *thread_runtime (void * arg)
             clients[idClient] = -1;
         }
     }
+	*/
 
 	close(fdSerie);
     close(fdCan);
 	
-	//free(trameClient);
-
     printf("fin du thread\n");
     return 0;
 }
@@ -238,46 +236,44 @@ int main()
             //close(socketServeur);
             //exit(errno);
         }
+		else
+		{
+			printf("Nouveau client !\n");
 
-        printf("Nouveau client !\n");
+			for(i=0 ; i<CLIENT_MAX ; i++)
+			{
+				if(clients[i]==-1)
+				{
+					clients[i]=socketClient;
+					printf("Client assigne a l'indice %d\n", i);
+					break;
+				}
+			}
 
-        for(i=0 ; i<CLIENT_MAX ; i++)
-        {
-            if(clients[i]==-1)
-            {
-                clients[i]=socketClient;
-                printf("Client assigne a l'indice %d\n", i);
-                break;
-            }
-        }
+			if(i == CLIENT_MAX)
+			{
+				printf("Table des client pleine, client rejete !\n");
+				close(socketClient);
+			}
 
-        if(i==CLIENT_MAX)
-        {
-            printf("Table des client pleine, client rejete !\n");
-            close(socketClient);
-        }
-
-        if ( getnameinfo((struct sockaddr*)&addrServeur, sizeof(addrServeur), nomDuClient, sizeof(nomDuClient), portDuClient,
-                       sizeof(portDuClient), NI_NUMERICHOST | NI_NUMERICSERV) == 0)
-        {
-               printf("client=%s, port=%s\n", nomDuClient, portDuClient);
-        }
-        else
-        {
-            printf("Marche pas\n");
-            //printf("host=%s, serv=%s\n", nomDuClient, portDuClient);
-        }
+			if ( getnameinfo((struct sockaddr*)&addrServeur, sizeof(addrServeur), nomDuClient, sizeof(nomDuClient), portDuClient,
+						   sizeof(portDuClient), NI_NUMERICHOST | NI_NUMERICSERV) == 0)
+			{
+				   printf("client=%s, port=%s\n", nomDuClient, portDuClient);
+			}
+		}
     }
 	
 	// Attention : ce code n'est jamais atteint
     // Attente de la fin du thread
 	printf("CLEANING ...\n");
 	
-    if(pthread_join(thread, NULL) !=0)
+    if(pthread_join(thread, NULL) != 0)
     {
         perror("pthread_join");
         exit(errno);
     }
+	
     for(i=0 ; i<CLIENT_MAX ; i++)
     {
         if(clients[i] != -1)
