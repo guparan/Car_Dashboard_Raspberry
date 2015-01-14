@@ -227,7 +227,12 @@ int main()
     {
         printf("Attente d'une demande de connexion (quitter avec Cltrl-C)\n\n");
 
-        socketClient = accept(socketServeur, (struct sockaddr *)&addrServeur, &longueurAdresse); // appel bloquant
+        socketClient = accept(socketServeur, (struct sockaddr *)&addrServeur, &longueurAdresse);
+		if(errno == EAGAIN || errno == EWOULDBLOCK) // Aucun nouveau client
+		{
+			continue;
+		}
+		
         if(socketClient == -1 )
         {
 			printf("ERROR ON ACCEPT\n");
@@ -236,43 +241,43 @@ int main()
             //close(socketServeur);
             //exit(errno);
         }
-		else
+		
+		printf("Nouveau client !\n");
+
+		for(i=0 ; i<CLIENT_MAX ; i++)
 		{
-			printf("Nouveau client !\n");
-
-			for(i=0 ; i<CLIENT_MAX ; i++)
+			if(clients[i]==-1)
 			{
-				if(clients[i]==-1)
-				{
-					clients[i]=socketClient;
-					printf("Client assigne a l'indice %d\n", i);
-					break;
-				}
+				clients[i]=socketClient;
+				printf("Client assigne a l'indice %d\n", i);
+				break;
 			}
+		}
 
-			if(i == CLIENT_MAX)
-			{
-				printf("Table des client pleine, client rejete !\n");
-				close(socketClient);
-			}
+		if(i == CLIENT_MAX)
+		{
+			printf("Table des client pleine, client rejete !\n");
+			close(socketClient);
+		}
 
-			if ( getnameinfo((struct sockaddr*)&addrServeur, sizeof(addrServeur), nomDuClient, sizeof(nomDuClient), portDuClient,
-						   sizeof(portDuClient), NI_NUMERICHOST | NI_NUMERICSERV) == 0)
-			{
-				   printf("client=%s, port=%s\n", nomDuClient, portDuClient);
-			}
+		if ( getnameinfo((struct sockaddr*)&addrServeur, sizeof(addrServeur), nomDuClient, sizeof(nomDuClient), portDuClient,
+					   sizeof(portDuClient), NI_NUMERICHOST | NI_NUMERICSERV) == 0)
+		{
+			   printf("client=%s, port=%s\n", nomDuClient, portDuClient);
 		}
     }
 	
 	// Attention : ce code n'est jamais atteint
     // Attente de la fin du thread
 	printf("CLEANING ...\n");
-	
+
+/*	
     if(pthread_join(thread, NULL) != 0)
     {
         perror("pthread_join");
         exit(errno);
     }
+*/
 	
     for(i=0 ; i<CLIENT_MAX ; i++)
     {
