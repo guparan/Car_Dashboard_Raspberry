@@ -10,9 +10,17 @@ static int keepRunning = 1;
 
 void intHandler(int sig)
 {
-    printf("signal recupere %d\n", sig);
-    keepRunning=0;
-    exit(sig);
+	char  c;
+
+	signal(sig, SIG_IGN);
+	printf("Do you really want to quit? [y/n] ");
+	c = getchar();
+	if (c == 'y' || c == 'Y')
+	{
+		keepRunning=0;
+		exit(sig);
+	}
+	else signal(SIGINT, intHandler);
 }
 
 
@@ -171,6 +179,7 @@ int main()
     char nomDuClient[1024], portDuClient[32];
 
     // Gestion du signal d'interuption Ctrl+C
+	signal(SIGINT, SIG_IGN);
     signal(SIGINT, intHandler);
 	
 	// Gestion du signal SIGPIPE envoye par une socket Client : on l'ignore
