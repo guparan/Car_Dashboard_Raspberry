@@ -85,21 +85,22 @@ int initLiaisonCan()
 
 ssize_t lectureTrame(int liaisonSerie, char *buffer, size_t tailleBuffer)
 {
-    ssize_t lus;
+    ssize_t nbLus;
 	int totalLus = 0;
     char data;
     int lecture = 0;
 	
-	tcflush(liaisonSerie, TCIFLUSH);
+	// On vide le buffer de lecture pour effacer les anciennes trames lues
+	tcfnbLush(liaisonSerie, TCIFLUSH);
 
     while( totalLus < tailleBuffer )
     {
         printf("je rentre dans la liaison\n");
-        lus = read(liaisonSerie, &data, sizeof data);
-        if( lus <= 0)
+        nbLus = read(liaisonSerie, &data, sizeof data);
+        if( nbLus <= 0)
         {
-            printf("erreur : lus = %d \n", lus);
-            return lus;     /*erreur*/
+            printf("erreur : nbLus = %d \n", nbLus);
+            return nbLus;     /*erreur*/
         }
 
         printf("%c\n", data);
@@ -137,7 +138,7 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 	// TODO : stop loop after 1000 negative frames ?
 	while(1)
 	{
-		//Read a message back from the CAN bus
+		// La fonction read remplit frame avec le resultat de la lecture sur le port CAN
 		nbytes = read( fdCan, &frame, sizeof(struct can_frame));
 
 		if(nbytes == 0)
@@ -174,7 +175,7 @@ ssize_t lectureTrameCan(int fdCan, char *buffer, size_t tailleBuffer)
 
 int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
 {
-	static int static_ligne = 0;
+	static int static_ligne = 0; // L'entier static_ligne est init a 0 et n'est jamais detruit. On peut le modifier.
     int i;
 
 	// TODO try this
@@ -196,7 +197,7 @@ int saveTrame(FILE* fptr, char *buffer, int sizeofbuffer)
 
 int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan)
 {
-	static int static_ligne = 0;
+	static int static_ligne = 0; // L'entier static_ligne est init a 0 et n'est jamais detruit. On peut le modifier.
 	int i = 0;
 
 	printf("Je suis dans la fonction save tramecan\n");
@@ -209,12 +210,12 @@ int saveTrameCan(FILE* fptr, char *bufferCan, int sizeofbuffercan)
 	*/
 
 	fprintf(fptr, "%d;", static_ligne);
-	for(i=0 ; i<TAILLE_TRAME_CAN-1 ; i++)
+	for(i=0 ; i<TAILLE_TRAME_CAN-1 ; i++) // Pour toutes les valeurs de la trame sauf la derniere
 	{
-		fprintf(fptr, "%d;", bufferCan[i]);
+		fprintf(fptr, "%d;", bufferCan[i]); // On écrit la valeur puis un point-virgule dans le fichier 
 	}
-	fprintf(fptr, "%d", bufferCan[i]);
-	fprintf(fptr, "\n");
+	fprintf(fptr, "%d", bufferCan[i]); // Pour la dernière valeur, on écrit la valeur sans point-virgule
+	fprintf(fptr, "\n"); // et on revient à la ligne
 
 	static_ligne++;
 
@@ -263,24 +264,4 @@ void convertIntToChar(int value, char* result, int resultSize)
 	printf("\n");
 
 	free(buffer);
-}
-
-
-void concatenation(char* frameSerie, char* frameCan, char* tailleTrameSerieLue_encode, char* tailleTrameCanLue_encode)
-{
-	int i, j;
-	int longueurTrame = TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME+TAILLE_TRAME_CAN;
-
-	char* trameTotal = malloc(longueurTrame);
-
-    for(i=0, j=0 ; i<longueurTrame ; i++ , j++)
-    {
-        if (i<TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN) trameTotal[i] = tailleTrameSerieLue_encode[j];
-        if (i==TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN) j=0;
-        if (i<TAILLE_INFO_TRAME) trameTotal[i] = tailleTrameCanLue_encode[j];
-        if (i==TAILLE_INFO_TRAME) j=0;
-        if (i<TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME) trameTotal[i] = frameSerie[j];
-        if (i==TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME) j=0;
-        if (i<TAILLE_INFO_TRAME+TAILLE_INFO_TRAME_CAN+TAILLE_TRAME+TAILLE_TRAME_CAN) trameTotal[i] = frameCan[j];
-    }
 }
